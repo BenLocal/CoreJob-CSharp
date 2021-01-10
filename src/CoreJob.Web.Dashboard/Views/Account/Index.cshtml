@@ -1,0 +1,133 @@
+﻿<div class="ui small left icon input">
+    <input type="text" placeholder="Search Trigger..." id="search-trigger">
+    <i class="search icon"></i>
+</div>
+<a class="ui right floated primary button" href="@Url.Action("new", "account")">
+    <i class="plus icon"></i>新增用户
+</a>
+
+<div id="msg-panel" style="margin-top:20px;"></div>
+
+<table class="ui single line table highlight-rows" id="account-list">
+    <thead>
+        <tr>
+            <th width="50">ID</th>
+            <th>用户名</th>
+        </tr>
+    </thead>
+    <tbody id="account_table_body">
+    </tbody>
+    <tfoot id="account_table_tfoot">
+        <tr>
+            <th colspan="6">
+                <div id="account_table_pagination" class="ui mini right floated pagination menu">
+                </div>
+            </th>
+        </tr>
+    </tfoot>
+</table>
+
+<div style="display:none">
+    <div class="ui small vertical menu borderless" id="account_context_menu">
+        @*<a class="item menu-edit"><i class="left large blue pencil alternate icon"></i>编辑</a>*@
+        <a class="item menu-delete"><i class="left large red trash alternate outline icon"></i>删除</a>
+    </div>
+</div>
+
+<script type="text/html" id="account_table_body_tmp">
+    {{# $.each(d, function(index, item){ var rowstr = JSON.stringify(item);}}
+    <tr data-row='{{rowstr}}'>
+        <td class="account-id">{{item.id}}</td>
+        <td class="account-name">
+            {{item.name}}
+            <button class="ui icon mini detail button"><i class="dots icon"></i></button>
+        </td>
+    </tr>
+    {{#  }); }}
+</script>
+
+<div id="account_table_empty"></div>
+
+<script type="text/html" id="account_empty_tmp">
+    <div style="text-align: center; color: #dedede;">
+        <div style="font-size: 6em; font-weight: bold; margin: 1em;"><i class="frown outline icon" style="height: auto"></i></div>
+        <div style="font-size: 2em;">没有数据...</div>
+    </div>
+</script>
+
+<div class="ui mini modal" id="delete-dialog">
+    <div class="content">
+        <p>确定要删除这个用户?</p>
+        <p><b class="confirm-item"></b></p>
+    </div>
+    <div class="actions">
+        <div class="ui approve red button">删除</div>
+        <div class="ui cancel button">取消</div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script>
+        function bindContextMenu(menu, accountId, accountName) {
+            //menu.find('>.menu-edit').attr('href', '/account/edit/' + accountId);
+            menu.find('>.menu-delete').click(function () {
+                $('#delete-dialog .confirm-item').text(accountName);
+                deleteItem({}, $('#msg-panel'),
+                    '/account/delete/' + accountId, '/account/index');
+            });
+
+            return menu;
+        }
+
+        function bindTable() {
+            $('#account_table_body').on('click', '> tr > td > .detail.button', function () {
+                const $button = $(this),
+                    $_ = $(this).closest('tr'),
+                    accountId = $_.find('>.account-id').text().trim(),
+                    accountName = $_.find('>.account-name').text().trim();
+                $_.addClass('active-menu'); // to preserve highlighted row
+                $button.popup({
+                    transition: 'slide',
+                    position: 'bottom left',
+                    variation: 'basic',
+                    on: 'click',
+                    arrowPixelsFromEdge: 0,
+                    onCreate: function () {
+                        $(this).addClass('context-menu').click(function () { $button.popup('hide'); });
+                    },
+                    onHide: function () {
+                        $_.removeClass('active-menu');
+                    },
+                    html: bindContextMenu($('#account_context_menu').clone(), accountId, accountName)
+                }).off('click').popup('show');
+            });
+        }
+
+        function initPage() {
+            new Pagination({
+                id: "account_table_pagination",
+                url: '@Url.Action("accountlist", "account")',
+                pageSize: 20,
+                barSize: 5,
+                success: function (rows) {
+                    if (!rows || rows.length == 0) {
+                        $("#account_table_empty").html(laytpl($("#account_empty_tmp").html()).render({}));
+                        $("#account_table_tfoot").hide();
+                    } else {
+                        $("#account_table_body").html(laytpl($("#account_table_body_tmp").html()).render(rows));
+                        $("#account_table_tfoot").show();
+                        bindTable();
+                    }
+                },
+                error: function (msg) {
+                }
+            })
+        }
+
+        $(function () {
+            initPage();
+        });
+
+    </script>
+}

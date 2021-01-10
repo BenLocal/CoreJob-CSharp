@@ -1,0 +1,230 @@
+﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+a.navbar-brand {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+/* Provide sufficient contrast against white background */
+a {
+  color: #0366d6;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+/*html {
+  font-size: 14px;
+}
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}*/
+
+.border-top {
+  border-top: 1px solid #e5e5e5;
+}
+.border-bottom {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow {
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy {
+  font-size: 1rem;
+  line-height: inherit;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: 60px;
+}
+
+#top-menu {
+    background-color: #294158;
+}
+
+body {
+    background-color: #FFFFFF;
+}
+
+#top-menu {
+    background-color: #294158;
+}
+
+.ui.inverted.pointing.menu .active.item:after {
+    background: rgba(255,255,255,.15) !important;
+}
+
+.top.menu .header.item img.logo {
+    margin-right: 0.8em;
+}
+
+.top.menu .header.item {
+    padding-left: 8px;
+}
+
+.main.container {
+    padding-top: 1em;
+}
+
+.ui.menu .item {
+    padding: 15px 20px;
+}
+
+.ui.menu.top,
+.ui.menu.top .item:first-child,
+.ui.menu.top .item:last-child {
+    border-radius: 0px !important;
+}
+
+.ui.menu .ui.header.item {
+    border-left: none !important;
+}
+
+.ui.left.floated.header > a > i.tiny.icon {
+    margin-left: 0.5em
+}
+
+.ui.table {
+    border-radius: 0px !important;
+}
+
+    .ui.table td {
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    .ui.table thead th {
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    .ui.table:not(.unstackable) tr {
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+.ui.secondary.menu .ui.small.button {
+    height: 36px;
+}
+
+i.icon.dots:before {
+    content: "...";
+}
+
+.ui.icon.detail.button {
+    margin-left: .5em;
+    padding: .3em;
+    visibility: hidden;
+}
+
+tr:hover > td > .ui.icon.detail.button, tr.active-menu > td > .ui.icon.detail.button {
+    visibility: visible;
+}
+
+table.highlight-rows > tbody > tr:hover > td, table.highlight-rows > tbody > tr.active-menu > td {
+    background-color: #f4f4f4;
+}
+
+.ui.popup.context-menu {
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    /*-webkit-box-shadow: none;
+    box-shadow: none;
+    border-radius: 0;*/
+}
+
+.ui.vertical.menu .item > i.icon.left {
+    float: none;
+    margin: 0em 0.6em 0em 0em;
+}
+
+.context-menu > .ui.menu {
+    border: none;
+    border-radius: 0;
+}
+
+    .context-menu > .ui.menu > .item {
+        padding: 10px 10px;
+    }
+
+        .context-menu > .ui.menu > .item > .large.icon {
+            font-size: 1.2em;
+        }
+
+.context-menu > .ui.vertical.menu > .item:first-child, .context-menu > .ui.vertical.menu > .item:last-child {
+    border-radius: 0;
+}
+
+#msg-panel:not(:empty) {
+    margin-top: 15px;
+}
+
+.ui.inline.message p {
+    margin: 0;
+}
+
+.ui.inline.message {
+    padding: 8px 15px;
+}
+
+    .ui.inline.message > .close.icon {
+        top: 8px;
+        right: .7em;
+    }
+
+#scheduler-dashboard .ui.statistic {
+    padding: 10px;
+    border-radius: 4px;
+}
+
+#scheduler-dashboard .ui.inverted.statistic {
+    text-shadow: 1px 2px 4px rgba(0,0,0,0.25);
+}
+
+.cron-field > label > a {
+    float: right;
+    font-weight: normal;
+    font-size: 90%;
+}
+
+    .cron-field > label > a:hover {
+        text-decoration: underline;
+    }
+
+    .cron-field > label > a > i {
+        text-decoration: none;
+    }
+
+.cron-field > p {
+    font-style: italic;
+    font-size: 85%;
+    margin: 3px;
+}
+

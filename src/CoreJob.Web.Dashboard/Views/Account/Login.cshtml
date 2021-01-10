@@ -1,0 +1,105 @@
+﻿@model CoreJob.Web.Dashboard.Models.UserViewModel
+
+@{
+    ViewData["Title"] = "登录";
+    Layout = "";
+}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>登录</title>
+    <link rel="stylesheet" href="~/lib/semantic-ui/semantic.min.css" />
+    <style>
+        .grid {
+            height: 100%;
+        }
+
+        .image {
+            margin-top: -100px;
+        }
+
+        .column {
+            max-width: 450px;
+        }
+
+        a {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="ui inverted page dimmer" id="dimmer"><div class="ui loader"></div></div>
+    <div class="ui middle aligned center aligned grid countier">
+        <div class="column">
+            <h2 class="ui image header">
+                <div class="content">
+                    登录
+                </div>
+            </h2>
+            <form class="ui large form" id="form">
+                <input type="hidden" name="@nameof(Model.Redirect)" value=@Model.Redirect />
+                <div class="ui  secondary  segment">
+                    <div class="field">
+                        <div class="ui left icon input">
+                            <i class="user icon"></i>
+                            <input type="text" name="@nameof(Model.UserName)" placeholder="请输入用户名">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="ui left icon input">
+                            <i class="lock icon"></i>
+                            <input type="password" name="@nameof(Model.Password)" placeholder="请输入密码">
+                        </div>
+                    </div>
+                    <div class="ui fluid large red button" id="user_login_btn">登录</div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/semantic-ui/semantic.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script type="text/javascript">
+
+        function save() {
+            $('#dimmer').dimmer('show');
+
+            var formData = new FormData($('#form')[0]);
+            clearErrorMessage($('#form'));
+            $.ajax({
+                type: 'POST',
+                enctype: 'multipart/form-data',
+                url: '@Url.Action("login", "account")',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: "json",
+                cache: false,
+                success: function (data) {
+                   
+                    if (data.cod == "ok") {
+                        document.location = '@Model.Redirect';
+                    } else {
+                        prependErrorMessage(data.msg, $('#form'));
+                        $('#dimmer').dimmer('hide');
+                    }
+                },
+                error: function (e) {
+                    $('#dimmer').dimmer('hide');
+                    prependErrorMessage(e, $('#form'));
+                }
+            });
+        }
+
+        $(function () {
+            $('#dimmer').dimmer({ closable: false, duration: 100, opacity: 1 });
+            $('#user_login_btn').click(function () { save(); });
+        });
+    </script>
+</body>
+</html>
+

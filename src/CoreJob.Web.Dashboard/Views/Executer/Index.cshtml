@@ -1,0 +1,141 @@
+﻿<div class="ui small left icon input">
+    <input type="text" placeholder="Search Trigger..." id="search-trigger">
+    <i class="search icon"></i>
+</div>
+<a class="ui right floated primary button" href="@Url.Action("new", "executer")">
+    <i class="plus icon"></i>新增执行器
+</a>
+
+<div id="msg-panel" style="margin-top:20px;"></div>
+
+<table class="ui single line table highlight-rows" id="trigger-list">
+    <thead>
+        <tr>
+            <th width="50">ID</th>
+            <th>名称</th>
+            <th>注册名</th>
+            <th>机器</th>
+        </tr>
+    </thead>
+    <tbody id="executer_table_body">
+    </tbody>
+    <tfoot id="executer_table_tfoot">
+        <tr>
+            <th colspan="6">
+                <div id="executer_table_pagination" class="ui mini right floated pagination menu">
+                </div>
+            </th>
+        </tr>
+    </tfoot>
+</table>
+
+<div style="display:none">
+    <div class="ui small vertical menu borderless" id="executer_context_menu">
+        <a class="item menu-edit"><i class="left large blue pencil alternate icon"></i>编辑</a>
+        <a class="item menu-delete"><i class="left large red trash alternate outline icon"></i>删除</a>
+    </div>
+</div>
+
+<script type="text/html" id="executer_table_body_tmp">
+    {{# $.each(d, function(index, item){ var rowstr = JSON.stringify(item);}}
+    <tr data-row='{{rowstr}}'>
+        <td class="executer-id">{{item.id}}</td>
+        <td class="executer-name">
+            {{item.name}}
+            <button class="ui icon mini detail button"><i class="dots icon"></i></button>
+        </td>
+        <td class="executer-registry-key">
+            {{item.registry_key}}
+        </td>
+        <td class="executer-registry-hosts">
+            {{item.registry_hosts}}
+        </td>
+    </tr>
+    {{#  }); }}
+</script>
+
+<div id="executer_table_empty"></div>
+
+<script type="text/html" id="executer_empty_tmp">
+    <div style="text-align: center; color: #dedede;">
+        <div style="font-size: 6em; font-weight: bold; margin: 1em;"><i class="frown outline icon" style="height: auto"></i></div>
+        <div style="font-size: 2em;">没有数据...</div>
+    </div>
+</script>
+
+<div class="ui mini modal" id="delete-dialog">
+    <div class="content">
+        <p>确定要删除这个执行器?</p>
+        <p><b class="confirm-item"></b></p>
+    </div>
+    <div class="actions">
+        <div class="ui approve red button">删除</div>
+        <div class="ui cancel button">取消</div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script>
+        function bindContextMenu(menu, executerId, executerName) {
+            menu.find('>.menu-edit').attr('href', '/executer/edit/' + executerId);
+            menu.find('>.menu-delete').click(function () {
+                $('#delete-dialog .confirm-item').text(executerName);
+                deleteItem({}, $('#msg-panel'),
+                    '/executer/delete/' + executerId, '/executer/index');
+            });
+
+            return menu;
+        }
+
+        function bindTable() {
+            $('#executer_table_body').on('click', '> tr > td > .detail.button', function () {
+                const $button = $(this),
+                    $_ = $(this).closest('tr'),
+                    executerId = $_.find('>.executer-id').text().trim(),
+                    executerName = $_.find('>.executer-name').text().trim();
+                $_.addClass('active-menu'); // to preserve highlighted row
+                $button.popup({
+                    transition: 'slide',
+                    position: 'bottom left',
+                    variation: 'basic',
+                    on: 'click',
+                    arrowPixelsFromEdge: 0,
+                    onCreate: function () {
+                        $(this).addClass('context-menu').click(function () { $button.popup('hide'); });
+                    },
+                    onHide: function () {
+                        $_.removeClass('active-menu');
+                    },
+                    html: bindContextMenu($('#executer_context_menu').clone(), executerId, executerName)
+                }).off('click').popup('show');
+            });
+        }
+
+        function initPage() {
+            new Pagination({
+                id: "executer_table_pagination",
+                url: '@Url.Action("executerlist", "executer")',
+                pageSize: 20,
+                barSize: 5,
+                success: function (rows) {
+                    if (!rows || rows.length == 0) {
+                        $("#executer_table_empty").html(laytpl($("#executer_empty_tmp").html()).render({}));
+                        $("#executer_table_tfoot").hide();
+                    } else {
+                        $("#executer_table_body").html(laytpl($("#executer_table_body_tmp").html()).render(rows));
+                        $("#executer_table_tfoot").show();
+                        bindTable();
+                    }
+                },
+                error: function (msg) {
+                }
+            })
+        }
+
+        $(function () {
+            initPage();
+        });
+
+    </script>
+}

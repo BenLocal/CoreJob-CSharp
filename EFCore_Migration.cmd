@@ -1,0 +1,2 @@
+Add-Migration NewMigration -Project CoreJob.Server.Store.Mysql -Context CoreJob.Server.Framework.Store.JobDbContext -StartupProject CoreJob.Web.Dashboard
+Add-Migration Newd -Project CoreJob.Server.Store.SqlServer -Context CoreJob.Server.Framework.Store.JobDbContext -StartupProject CoreJob.Web.Dashboard

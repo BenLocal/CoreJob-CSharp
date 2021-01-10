@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/lib/semantic-ui/semantic.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <div class="ui top inverted stackable menu" id="top-menu">
+        <div class="ui container">
+            <div class="ui header item">
+                CoreJob
+            </div>
+            <menu-link asp-action="index" asp-controller="home">首页</menu-link>
+            <menu-link asp-action="index" asp-controller="job">任务</menu-link>
+            <menu-link asp-action="index" asp-controller="log">历史</menu-link>
+            <menu-link asp-action="index" asp-controller="executer">执行器</menu-link>
+            <menu-link asp-action="index" asp-controller="account">用户</menu-link>
+            @if (User != null)
+            {
+                <div class="ui right dropdown item">
+                    @User.Identity.Name
+                    <i class="dropdown icon"></i>
+                    <div class="menu">
+                        <div class="item" id="user_password_btn">修改密码</div>
+                        <div class="item" id="user_login_btn">退出</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="ui main container" style="min-height: calc(100% - 173px);">
+        <div class="ui inverted page dimmer" id="dimmer"><div class="ui loader"></div></div>
+        @RenderBody()
+    </div>
+
+    <footer style="text-align:center; margin-top: 3em; padding: .8em 0; background-color: #f8f8f8; font-size: 90%; border-top: 1px solid rgba(34,36,38,.1);">
+        <a href="https://github.com" target="_blank" style="color: #909090"><i class="github icon"></i> CoreJob&nbsp;&nbsp;v1.0</a>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/semantic-ui/semantic.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/laytpl.js" asp-append-version="true"></script>
+    <script>
+        $(function () {
+            initDimmer();
+            $('.ui.dropdown').dropdown();
+
+            $("#user_login_btn").on("click", function () {
+                window.location = '/account/logout';
+            });
+            $("#user_password_btn").on("click", function () {
+                window.location = '/account/password';
+            });
+        });
+
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

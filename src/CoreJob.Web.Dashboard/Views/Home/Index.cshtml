@@ -1,0 +1,152 @@
+﻿@using CoreJob.Framework
+@model CoreJob.Web.Dashboard.Models.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div id="scheduler-dashboard">
+    <div class="ui three stackable link cards">
+        <div class="card orange">
+            <div class="content orange">
+                <div class="header">任务数量</div>
+            </div>
+            <div class="extra content">
+                <div class="ui large horizontal statistic">
+                    <div class="value">
+                        @Model.JobCount
+                    </div>
+                    <div class="label">
+                        个
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card teal">
+            <div class="content teal">
+                <div class="header">执行次数</div>
+            </div>
+            <div class="extra content">
+                <div class="ui large horizontal statistic">
+                    <div class="value">
+                        @Model.RunTimes
+                    </div>
+                    <div class="label">
+                        次
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card pink">
+            <div class="content pink">
+                <div class="header">执行器数量</div>
+            </div>
+            <div class="extra content">
+                <div class="ui large horizontal statistic">
+                    <div class="value">
+                        @Model.ExecuterCount
+                    </div>
+                    <div class="label">
+                        个
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h4 class="ui horizontal divider header">
+        <i class="bar chart icon"></i>
+    </h4>
+    <div id="lineChart" style="height: 350px; -webkit-tap-highlight-color: transparent; user-select: none; position: relative; display:none;"></div>
+</div>
+
+@section Scripts
+{
+    <script src="~/js/echarts.common.min.js"></script>
+    <script>
+        var hasData = '@Model.HasData';
+        function lineChartInit() {
+            var option = {
+                title: {
+                    text: "日期分布图"
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'cross',
+                        label: {
+                            backgroundColor: '#6a7985'
+                        }
+                    }
+                },
+                legend: {
+                    data: ["成功", "失败", "执行中"]
+                },
+                toolbox: {
+                    feature: {
+                        /*saveAsImage: {}*/
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: [
+                    {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: @Html.Raw(Model.DataTimeList.SerializeObject())
+                    }
+                ],
+                yAxis: [
+                    {
+                        type: 'value'
+                    }
+                ],
+                series: [
+                    {
+                        name: "成功",
+                        type: 'line',
+                        stack: 'Total',
+                        areaStyle: { normal: {} },
+                        data: [@string.Join(",", @Model.SuccessCountList)]
+                    },
+                    {
+                        name: "失败",
+                        type: 'line',
+                        stack: 'Total',
+                        label: {
+                            normal: {
+                                show: true,
+                                position: 'top'
+                            }
+                        },
+                        areaStyle: { normal: {} },
+                        data: [@string.Join(",", @Model.FailCountList)]
+                    },
+                    {
+                        name: "执行中",
+                        type: 'line',
+                        stack: 'Total',
+                        areaStyle: { normal: {} },
+                        data: [@string.Join(",", @Model.RunningCountList)]
+                    }
+                ],
+                color: ['#00A65A', '#c23632', '#F39C12']
+            };
+
+            var elem = $("#lineChart");
+            elem.show();
+            var lineChart = echarts.init(elem[0]);
+            lineChart.setOption(option);
+        }
+
+        $(function () {
+            if (hasData) {
+                lineChartInit();
+            }
+        });
+    </script>
+}
+

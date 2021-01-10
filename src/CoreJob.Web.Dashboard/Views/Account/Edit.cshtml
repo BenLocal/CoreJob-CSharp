@@ -1,0 +1,68 @@
+﻿@model CoreJob.Web.Dashboard.Models.UserViewModel
+<form class="ui form" id="form" enctype="multipart/form-data">
+    <div class="ui clearing basic segment" style="padding: 0px" id="header">
+        <div style="float: right">
+            <a class="ui button" id="btn-discard" href='@Url.Action("index", "account")'>取消</a>
+            <div class="ui buttons">
+                <div class="ui primary button" id="btn-add-user">保存</div>
+            </div>
+        </div>
+        <h1 class="ui left floated header">
+            添加用户
+        </h1>
+    </div>
+
+    <div class="ui segment">
+        <div id="account-properties">
+            <div class="field accept-error">
+                <label>用户名</label>
+                <input type="text" name="@nameof(Model.UserName)" placeholder="请输入用户名"/>
+            </div>
+            <div class="field accept-error">
+                <label>密码</label>
+                <input type="text" name="@nameof(Model.Password)" placeholder="请输入密码"/>
+            </div>
+            <div class="field accept-error">
+                <label>用户名称</label>
+                <input type="text" name="@nameof(Model.UserDisplayName)" placeholder="请输入用户名称"/>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts
+{
+    <script>
+        function addUser() {
+            $('#dimmer').dimmer('show');
+
+            var formData = new FormData($('#form')[0]);
+
+            $.ajax({
+                type: 'POST',
+                enctype: 'multipart/form-data',
+                url: '@Url.Action("adduser", "account")',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: "json",
+                cache: false,
+                success: function (data) {
+                    if (processValidationResponse(data)) {
+                        document.location = '@Url.Action("index", "account")';
+                    } else {
+                        $('#dimmer').dimmer('hide');
+                    }
+                },
+                error: function (e) {
+                    $('#dimmer').dimmer('hide');
+                    prependErrorMessage(e, $('#account-properties'));
+                }
+            });
+        }
+
+        $(function () {
+            $('#btn-add-user').click(function () { addUser(); });
+        });
+    </script>
+}

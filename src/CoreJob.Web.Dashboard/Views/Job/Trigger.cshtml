@@ -1,0 +1,62 @@
+﻿@model CoreJob.Web.Dashboard.Models.JobTriggerViewModel
+
+<form class="ui form" id="form" method="post" enctype="multipart/form-data">
+    <div class="ui clearing basic segment" style="padding: 0px" id="header">
+        <div style="float: right">
+            <a class="ui button" id="btn-discard" href='@Url.Action("index", "job")'>取消</a>
+            <div class="ui green button" id="btn-trigger"><i class="play icon"></i>开始执行</div>
+        </div>
+        <h1 class="ui left floated header">@Model.JobName<a title="编辑" href="@Url.Action("edit", "job")?job=@Model.JobId"><i class="external alternate tiny icon"></i></a></h1>
+    </div>
+
+    <div class="ui segment" id="job_context">
+        <input type="hidden" name="JobId" value="@Model.JobId" id="jobId" />
+        <label>任务参数</label>
+        <textarea rows="2" name="executorParam">@Model.ExecutorParam</textarea>
+    </div>
+</form>
+
+@section Scripts
+{
+<script>
+    $(function () {
+        $('#btn-trigger').click(function () {
+
+            //if ($('#job-data-map .type-col .ui.dropdown.disabled').length > 0) return; // type change in progress
+
+            $('#dimmer').dimmer('show');
+
+            //$('#job-data-map').jobDataMapPrepareForm();
+
+            const formData = new FormData($('#form')[0]);
+            const msgPanel = $('#job_context');
+
+            $.ajax({
+                type: 'POST',
+                enctype: 'multipart/form-data',
+                url: '@Url.Action("trigger", "job")',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: "json",
+                cache: false,
+                success: function (data) {
+                    $('#dimmer').dimmer('hide');
+
+                    if (processValidationResponse(data)) {
+                        const msg = $('<div class="ui positive inline message"><p>任务执行成功</p><i class="close icon"></i></div>');
+                        msg.transition('fade in', '500ms')
+                            .find('.close').on('click', function () { $(this).closest('.message').transition('fade'); });
+
+                        msgPanel.prepend(msg);
+                    }
+                },
+                error: function (e) {
+                    $('#dimmer').dimmer('hide');
+                    prependErrorMessage(e, msgPanel);
+                }
+            });
+        });
+    });
+</script>
+}

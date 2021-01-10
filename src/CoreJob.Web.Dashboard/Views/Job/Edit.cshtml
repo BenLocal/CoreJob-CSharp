@@ -1,0 +1,118 @@
+﻿@model CoreJob.Web.Dashboard.Models.JobViewModel
+
+<form class="ui form" id="form" enctype="multipart/form-data">
+    <div class="ui clearing basic segment" style="padding: 0px" id="header">
+        <div style="float: right">
+            <a class="ui button" id="btn-discard" href='@Url.Action("index", "job")'>取消</a>
+            @if (!Model.IsNew)
+            {
+                <div class="negative ui button" id="btn-delete">删除</div>
+            }
+            <div class="ui buttons">
+                <div class="ui primary button" id="btn-save">保存</div>
+                <div class="ui floating dropdown icon primary button" id="save-dropdown">
+                    <i class="dropdown icon"></i>
+                    <div class="menu">
+                        <div class="item ui basic button" id="btn-trigger"><i class="green play icon"></i>保存立即执行</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @if (Model.IsNew)
+        {
+            <h1 class="ui left floated header">
+                添加任务
+            </h1>
+        }
+        else
+        {
+            <h1 class="ui left floated header">
+                修改任务
+            </h1>
+        }
+    </div>
+
+    <div class="ui segment">
+        <input type="hidden" name="@nameof(Model.IsNew)" value=@Model.IsNew.ToString().ToLower() />
+        <input type="hidden" name="@nameof(Model.IsCopy)" value=@Model.IsCopy.ToString().ToLower() />
+        <input type="hidden" name="@nameof(Model.JobId)" value='@Model.JobId' />
+        <div id="job-properties">
+            <div class="two fields">
+                <div class="field accept-error">
+                    <label>任务名</label>
+                    <input type="text" name="@nameof(Model.JobName)" placeholder="Name" value="@Model.JobName" id="jobName" />
+                </div>
+                <div class="field accept-error cron-field">
+                    <label>Cron <a href="http://cronmaker.com" target="_blank"><i class="external alternate icon"></i>http://cronmaker.com</a></label>
+                    <input type="text" name="@nameof(Model.Cron)" placeholder="Name" value="@Model.Cron" id="cron_expression" />
+                    <div style="float: right; cursor:pointer; display: none" id="next_cron_dates"><i class="eye icon"></i></div>
+                    <p id="cron_desc"></p>
+                </div>
+            </div>
+            <div class="field accept-error">
+                <label>执行器</label>
+                <select class="ui search selection dropdown allow-additions" value="@Model.ExecutorId" name="@nameof(Model.ExecutorId)" asp-for="@Model.ExecutorId" asp-items="@Model.ExecutorItems">
+                </select>
+            </div>
+            <div class="field accept-error">
+                <label>任务执行器</label>
+                <input type="text" name="@nameof(Model.ExecutorHandler)" placeholder="Name" value="@Model.ExecutorHandler" id="jobName" />
+            </div>
+
+            <div class="field accept-error">
+                <label>任务参数</label>
+                <textarea rows="2" name="@nameof(Model.ExecutorParam)">@Model.ExecutorParam</textarea>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts
+{
+    <script>
+        function save(triggerNow) {
+            if ($('#job-data-map .type-col .ui.dropdown.disabled').length > 0) return; // type change in progress
+
+            $('#dimmer').dimmer('show');
+
+            var formData = new FormData($('#form')[0]);
+
+            $.ajax({
+                type: 'POST',
+                enctype: 'multipart/form-data',
+                url: '@Url.Action("save", "job")?trigger=' + triggerNow,
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: "json",
+                cache: false,
+                success: function (data) {
+                    if (processValidationResponse(data)) {
+                        document.location = '@Url.Action("index", "job")';
+                    } else {
+                        $('#dimmer').dimmer('hide');
+                    }
+                },
+                error: function (e) {
+                    $('#dimmer').dimmer('hide');
+                    prependErrorMessage(e, $('#job-properties'));
+                }
+            });
+        }
+
+        $(function () {
+            $('#save-dropdown').dropdown('setting', 'action', 'hide');
+
+            $('#btn-save').click(function () { save(false); });
+            $('#btn-trigger').click(function () { save(true); });
+
+            $('#job-properties .ui.dropdown, #header .ui.dropdown').each(function () {
+                $(this).dropdown({
+                    allowAdditions: $(this).hasClass('allow-additions')
+                });
+            });
+
+            initCronLiveDescription('@Url.Action("cron", "job")', $('#cron_expression'), $('#cron_desc'), $('#next_cron_dates'));
+        });
+    </script>
+}

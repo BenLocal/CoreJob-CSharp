@@ -1,0 +1,223 @@
+﻿<div id="msg-panel" style="margin-top:20px;"></div>
+
+<table class="ui single line table highlight-rows" id="trigger-list">
+    <thead>
+        <tr>
+            <th width="50">日志ID</th>
+            <th width="50">任务ID</th>
+            <th>执行时间</th>
+            <th>完成时间</th>
+            <th>结果</th>
+        </tr>
+    </thead>
+    <tbody id="log_table_body">
+    </tbody>
+    <tfoot id="log_table_tfoot">
+        <tr>
+            <th colspan="6">
+                <div id="log_table_pagination" class="ui mini right floated pagination menu">
+                </div>
+            </th>
+        </tr>
+    </tfoot>
+</table>
+
+<div id="log_table_empty"></div>
+
+<div style="display:none">
+    <div class="ui small vertical menu borderless" id="log_context_menu">
+        <a class="item menu-detail"><i class="left large clipboard list alternate icon"></i>详情</a>
+        <a class="item menu-log"><i class="left large red sticky note alternate outline icon"></i>日志</a>
+    </div>
+</div>
+
+<script type="text/html" id="log_table_body_tmp">
+    {{# $.each(d, function(index, item){ var rowstr = JSON.stringify(item);}}
+    <tr data-row='{{rowstr}}'>
+        <td class="log-id">
+            {{item.id}}
+        </td>
+        <td class="job-id">
+            {{item.job_id}}
+        </td>
+        <td class="log-start-time">
+            {{item.start_time || 'N/A'}}
+            <button class="ui icon mini detail button"><i class="dots icon"></i></button>
+        </td>
+        <td class="log-complete-time">
+            {{item.complete_time || 'N/A' }}
+        </td>
+        <td class="job-status">
+            {{#  if(item.status == 0){ }}
+            <i class="play icon orange"></i><span>执行中</span>
+            {{#  } else if(item.status == 1) { }}
+            <i class="check icon green"></i><span> 成功</span>
+            {{#  } else { }}
+            <i class="close icon red"></i><span> 失败</span>
+            {{#  } }}
+        </td>
+    </tr>
+    {{#  }); }}
+</script>
+
+<script type="text/html" id="log_empty_tmp">
+    <div style="text-align: center; color: #dedede;">
+        <div style="font-size: 6em; font-weight: bold; margin: 1em;"><i class="frown outline icon" style="height: auto"></i></div>
+        <div style="font-size: 2em;">没有数据...</div>
+    </div>
+</script>
+
+<div class="ui modal" id="msg-dialog">
+    <div class="content">
+        
+    </div>
+    <div class="actions">
+        <div class="ui cancel button">关闭</div>
+    </div>
+</div>
+
+<script type="text/html" id="msg_dialog_content_tmp">
+    <h4 class="ui horizontal divider header">
+        <i class="arrow circle down icon"></i>
+        参数
+    </h4>
+    <table class="ui definition table">
+        <tbody>
+            <tr>
+                <td class="two wide column">请求地址</td>
+                <td>{{d.executer_host}}</td>
+            </tr>
+            <tr>
+                <td>控制器</td>
+                <td>{{d.executer_handler}}</td>
+            </tr>
+            <tr>
+                <td>参数</td>
+                <td>{{d.executer_param}}</td>
+            </tr>
+        </tbody>
+    </table>
+    <h4 class="ui horizontal divider header">
+        <i class="arrow circle down icon"></i>
+        执行详细
+    </h4>
+    <table class="ui definition table">
+        <tbody>
+            <tr>
+                <td class="two wide column">时间</td>
+                <td>{{d.handler_time}}</td>
+            </tr>
+            <tr>
+                <td>详细</td>
+                <td>{{d.handler_msg}}</td>
+            </tr>
+        </tbody>
+    </table>
+    <h4 class="ui horizontal divider header">
+        <i class="arrow circle down icon"></i>
+        完成详细
+    </h4>
+    <table class="ui definition table">
+        <tbody>
+            <tr>
+                <td class="two wide column">时间</td>
+                <td>{{d.complete_time || 'N/A'}}</td>
+            </tr>
+            <tr>
+                <td>详细</td>
+                <td>{{d.complete_msg || 'N/A'}}</td>
+            </tr>
+        </tbody>
+    </table>
+</script>
+
+@section Scripts
+{
+    <script>
+        function bindContextMenu(menu, row) {
+            menu.find('>.menu-detail').click(function () {
+                //$('#msg-dialog .content').remove();
+                openMsgDialog(row);
+            });
+            menu.find('>.menu-log').click(function () {
+                //$('#msg-dialog .content').remove();
+                doPost({
+                    url: '@Url.Action("logInfo", "log")/' + row.id,
+                    success: function (data) {
+                        if (data.log_content) {
+                            $('#msg-dialog .content').html("<p>" + data.log_content + "</p>");
+                        } else {
+                            $('#msg-dialog .content').html("<p>无</p>");
+                        }
+                        
+                        $('#msg-dialog')
+                            .modal({
+                                duration: 250,
+                            })
+                            .modal('show');
+                    }
+                });
+            });
+
+            return menu;
+        }
+
+        function bindTable() {
+            $('#log_table_body').on('click', '> tr > td > .detail.button', function () {
+                    const $button = $(this),
+                        $_ = $(this).closest('tr'),
+                        rows = $.parseJSON($_.attr("data-row"));
+                    $_.addClass('active-menu'); // to preserve highlighted row
+                    $button.popup({
+                        transition: 'slide',
+                        position: 'bottom left',
+                        variation: 'basic',
+                        on: 'click',
+                        arrowPixelsFromEdge: 0,
+                        onCreate: function () {
+                            $(this).addClass('context-menu').click(function () { $button.popup('hide'); });
+                        },
+                        onHide: function () {
+                            $_.removeClass('active-menu');
+                        },
+                        html: bindContextMenu($('#log_context_menu').clone(), rows)
+                    }).off('click').popup('show');
+            });
+        }
+
+        function openMsgDialog(row) {
+            $('#msg-dialog .content').html(laytpl($("#msg_dialog_content_tmp").html()).render(row));
+            $('#msg-dialog')
+                .modal({
+                    duration: 250,
+                })
+                .modal('show');
+        }
+
+        function initPage() {
+            new Pagination({
+                id: "log_table_pagination",
+                url: '@Url.Action("loglist", "log")/@ViewData["JobId"]',
+                pageSize: 20,
+                barSize: 5,
+                success: function (rows) {
+                    if (!rows || rows.length == 0) {
+                        $("#log_table_empty").html(laytpl($("#log_empty_tmp").html()).render({}));
+                        $("#log_table_tfoot").hide();
+                    } else {
+                        $("#log_table_body").html(laytpl($("#log_table_body_tmp").html()).render(rows));
+                        $("#log_table_tfoot").show();
+                        bindTable();
+                    }
+                },
+                error: function (msg) {
+                }
+            })
+        }
+
+        $(function () {
+            initPage();
+        });
+
+    </script>
+}

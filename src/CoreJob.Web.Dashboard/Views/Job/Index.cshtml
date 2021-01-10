@@ -1,0 +1,179 @@
+﻿@{
+    ViewData["Title"] = "任务管理";
+}
+
+<div class="ui small left icon input">
+    <input type="text" placeholder="Search Trigger..." id="search-trigger">
+    <i class="search icon"></i>
+</div>
+
+<a class="ui right floated primary button" href="@Url.Action("new", "job")">
+    <i class="plus icon"></i>新增任务
+</a>
+
+<div id="msg-panel" style="margin-top:20px;"></div>
+
+<table class="ui single line table highlight-rows" id="trigger-list">
+    <thead>
+        <tr>
+            <th width="50">任务ID</th>
+            <th>任务名</th>
+            <th>Cron</th>
+            <th>状态</th>
+        </tr>
+    </thead>
+    <tbody id="job_table_body">
+    </tbody>
+    <tfoot id="job_table_tfoot">
+        <tr>
+            <th colspan="6">
+                <div id="job_table_pagination" class="ui mini right floated pagination menu">
+                </div>
+            </th>
+        </tr>
+    </tfoot>
+</table>
+
+<div id="job_table_empty"></div>
+
+<script type="text/html" id="job_table_body_tmp">
+    {{# $.each(d, function(index, item){ }}
+    <tr>
+        <td class="job-id">{{item.id}}</td>
+        <td class="job-name">
+            <a href="/log/index/{{item.id}}" title="{{item.name}}">{{item.name}}</a>
+            <button class="ui icon mini detail button"><i class="dots icon"></i></button>
+        </td>
+        <td class="job-cron" data-content="{{item.cron_description}}">
+            <i class="clock outline icon"></i>
+            {{item.cron}}
+        </td>
+        <td class="job-status" data-content="{{item.status}}">
+            {{#  if(item.status == 1){ }}
+            <div class="ui mini green label">执行中</div>
+            {{#  } else { }}
+            <div class="ui mini red label">停止</div>
+            {{#  } }}
+        </td>
+    </tr>
+    {{#  }); }}
+</script>
+
+<script type="text/html" id="job_empty_tmp">
+    <div style="text-align: center; color: #dedede;">
+        <div style="font-size: 6em; font-weight: bold; margin: 1em;"><i class="frown outline icon" style="height: auto"></i></div>
+        <div style="font-size: 2em;">没有数据...</div>
+    </div>
+</script>
+
+<div style="display:none">
+    <div class="ui small vertical menu borderless" id="job-context-menu">
+        <a class="item menu-edit"><i class="left large blue pencil alternate icon"></i>编辑</a>
+        <a class="item menu-copy"><i class="left large clone outline icon"></i>复制</a>
+        <a class="item menu-trigger"><i class="left large green hourglass start icon"></i>执行一次</a>
+        <a class="item menu-start"><i class="left large green play icon"></i>开始</a>
+        <a class="item menu-stop"><i class="left large red stop icon"></i>停止</a>
+        <a class="item menu-delete"><i class="left large red trash alternate outline icon"></i>删除</a>
+    </div>
+</div>
+
+<div class="ui mini modal" id="delete-dialog">
+    <div class="content">
+        <p>确定要删除这个任务?</p>
+        <p><b class="confirm-item"></b></p>
+    </div>
+    <div class="actions">
+        <div class="ui approve red button">删除</div>
+        <div class="ui cancel button">取消</div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script>
+        function bindContextMenu(menu, row, jobId, jobName) {
+
+            menu.find('>.menu-edit').attr('href', '@Url.Action("edit", "job")/' + jobId);
+            menu.find('>.menu-copy').attr('href', '@Url.Action("copy", "job")/' + jobId);
+            menu.find('>.menu-trigger').attr('href', '@Url.Action("trigger", "job")/' + jobId);
+            menu.find('>.menu-start').click(function () {
+                doGet({
+                    url: '@Url.Action("resume", "job")/' + jobId,
+                    success: function (data) {
+                        document.location = '@Url.Action("index", "job")';
+                    }
+                })
+            });
+            menu.find('>.menu-stop').click(function () {
+                doGet({
+                    url: '@Url.Action("pause", "job")/' + jobId,
+                    success: function (data) {
+                        document.location = '@Url.Action("index", "job")';
+                    }
+                })
+            });
+            menu.find('>.menu-delete').click(function () {
+                $('#delete-dialog .confirm-item').text(jobName);
+                deleteItem({}, $('#msg-panel'),
+                    '/job/delete/' + jobId, '/job/index');
+            });
+
+            var status = row.find('>.job-status').data("content");
+            if (status == "1") {
+                menu.find('>.menu-start').hide();
+                menu.find('>.menu-stop').show();
+            } else {
+                menu.find('>.menu-start').show();
+                menu.find('>.menu-stop').hide();
+            }
+
+            return menu;
+        }
+
+        function initPage() {
+            new Pagination({
+                id: "job_table_pagination",
+                url: '@Url.Action("joblist", "job")',
+                pageSize: 20,
+                barSize: 5,
+                success: function (rows) {
+                    if (!rows || rows.length == 0) {
+                        $("#job_table_empty").html(laytpl($("#job_empty_tmp").html()).render({}));
+                        $("#job_table_tfoot").hide();
+                    } else {
+                        $("#job_table_body").html(laytpl($("#job_table_body_tmp").html()).render(rows));
+                        $("#job_table_tfoot").show();
+                        $('#job_table_body').on('click', '> tr > td > .detail.button', function () {
+                            const $button = $(this),
+                                $_ = $(this).closest('tr'),
+                                jobId = $_.find('>.job-id').text(),
+                                jobName = $_.find('>.job-name a').text();
+                            $_.addClass('active-menu'); // to preserve highlighted row
+                            $button.popup({
+                                transition: 'slide',
+                                position: 'bottom left',
+                                variation: 'basic',
+                                on: 'click',
+                                arrowPixelsFromEdge: 0,
+                                onCreate: function () {
+                                    $(this).addClass('context-menu').click(function () { $button.popup('hide'); });
+                                },
+                                onHide: function () {
+                                    $_.removeClass('active-menu');
+                                },
+                                html: bindContextMenu($('#job-context-menu').clone(), $_, jobId, jobName)
+                            }).off('click').popup('show');
+                        });
+
+                        $('.job-cron').popup({ distanceAway: -12, variation: 'very wide' });
+                    }
+                }
+            })
+        }
+
+        $(function () {
+            // load table data
+            initPage();
+        });
+    </script>
+}
