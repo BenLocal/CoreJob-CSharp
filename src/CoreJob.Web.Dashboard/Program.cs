@@ -1,3 +1,4 @@
+using System.Net;
 using CoreJob.Server.Framework.Store;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -15,7 +16,11 @@ namespace CoreJob.Web.Dashboard
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
+                    webBuilder.UseStartup<Startup>()
+                        .ConfigureKestrel((context, options) =>
+                        {
+                            options.Listen(IPAddress.Any, 7800);
+                        });
                 });
     }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CoreJob.Framework.Models;
 using CoreJob.Framework.Models.HttpAction;
 using CoreJob.Framework.Models.Response;
+using CoreJob.Framework.Json.Extensions;
 using MessagePack;
 using Microsoft.AspNetCore.Http;
 using RestSharp;

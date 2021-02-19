@@ -47,5 +47,7 @@ namespace CoreJob.Framework
         public const string Job_Default_Group = "default";
 
         public const string Job_System_Group = "system";
+
+        public const string MAP_DATA_HAS_ERROR = "HasError";
     }
 }

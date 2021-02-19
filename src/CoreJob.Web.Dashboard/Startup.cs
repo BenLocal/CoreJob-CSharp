@@ -1,15 +1,17 @@
 using System;
+using CoreJob.Framework.Json.Extensions;
 using CoreJob.Framework.Models;
 using CoreJob.Server.Framework;
 using CoreJob.Server.Framework.Abstractions;
-using CoreJob.Server.Store.SqlServer;
+using CoreJob.Server.Store.Mysql;
 using CoreJob.Web.Dashboard.Helpers.Common;
+using CoreJob.Web.Dashboard.Hubs;
+using CoreJob.Web.Dashboard.Services.JobAction;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -31,18 +33,15 @@ namespace CoreJob.Web.Dashboard
         {
             var ass = new[] { typeof(Startup).Assembly };
             services.AddMediatR(ass);
-            services.AddValidatorsFromAssemblies(new[] { typeof(Startup).Assembly },
-                ServiceLifetime.Scoped);
+            services.AddValidatorsFromAssemblies(ass, ServiceLifetime.Scoped);
             services.Add(new ServiceDescriptor(typeof(IValidationNotificationContext), typeof(ValidationNotificationContext), ServiceLifetime.Scoped));
             services.Add(new ServiceDescriptor(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>), ServiceLifetime.Scoped));
 
-            services.AddControllersWithViews().AddNewtonsoftJson(options =>
+            services.AddControllersWithViews().AddJsonOptions(option =>
             {
-                options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
-                options.SerializerSettings.ContractResolver = new DefaultContractResolver
-                {
-                    NamingStrategy = new SnakeCaseNamingStrategy()
-                };
+                option.JsonSerializerOptions.WriteIndented = true;
+                option.JsonSerializerOptions.PropertyNamingPolicy = new SnakeCaseNamingPolicySpan();
+                option.JsonSerializerOptions.Converters.Add(new JsonDateTimeConverter());
             });
 
             services.AddAuthentication("CoreJobCookie").AddCookie("CoreJobCookie", p =>
@@ -61,7 +60,11 @@ namespace CoreJob.Web.Dashboard
                 options.InputMessageType = HttpMessageType.MSGPACK;
                 options.OutputMessageType = HttpMessageType.MSGPACK;
                 options.Token = "LDgVTSL2m3oEZMvgMAtJzEhhD8rT0bRpQXQ8583E";
+                options.JobAssemblies.Add(typeof(Startup).Assembly);
             });
+
+            services.AddSignalR();
+            services.AddSingleton<ISystemScheduler, CupSystemScheduler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -88,6 +91,8 @@ namespace CoreJob.Web.Dashboard
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHub<CpuHub>("/hub/cpu");
+
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");

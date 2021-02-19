@@ -1,4 +1,7 @@
-﻿<div id="msg-panel" style="margin-top:20px;"></div>
+﻿@{
+    ViewData["Title"] = "历史";
+}
+<div id="msg-panel" style="margin-top:20px;"></div>
 
 <table class="ui single line table highlight-rows" id="trigger-list">
     <thead>
@@ -26,8 +29,8 @@
 
 <div style="display:none">
     <div class="ui small vertical menu borderless" id="log_context_menu">
-        <a class="item menu-detail"><i class="left large clipboard list alternate icon"></i>详情</a>
-        <a class="item menu-log"><i class="left large red sticky note alternate outline icon"></i>日志</a>
+        <a class="item menu-detail"><i class="left large info circle icon"></i>详情</a>
+        <a class="item menu-log"><i class="left large history icon"></i>日志</a>
     </div>
 </div>
 
@@ -67,9 +70,8 @@
     </div>
 </script>
 
-<div class="ui modal" id="msg-dialog">
-    <div class="content">
-        
+<div class="ui fullscreen modal" id="msg-dialog">
+    <div class="content" style="width: 100%; height: auto; word-wrap: break-word; word-break: break-all;">
     </div>
     <div class="actions">
         <div class="ui cancel button">关闭</div>
@@ -142,14 +144,14 @@
             menu.find('>.menu-log').click(function () {
                 //$('#msg-dialog .content').remove();
                 doPost({
-                    url: '@Url.Action("logInfo", "log")/' + row.id,
+                    url: '@Url.Action("logInfo", "logs")/' + row.id,
                     success: function (data) {
                         if (data.log_content) {
                             $('#msg-dialog .content').html("<p>" + data.log_content + "</p>");
                         } else {
                             $('#msg-dialog .content').html("<p>无</p>");
                         }
-                        
+
                         $('#msg-dialog')
                             .modal({
                                 duration: 250,
@@ -197,7 +199,7 @@
         function initPage() {
             new Pagination({
                 id: "log_table_pagination",
-                url: '@Url.Action("loglist", "log")/@ViewData["JobId"]',
+                url: '@Url.Action("loglist", "logs")/@ViewData["JobId"]',
                 pageSize: 20,
                 barSize: 5,
                 success: function (rows) {

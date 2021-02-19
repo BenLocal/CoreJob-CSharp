@@ -38,7 +38,7 @@ namespace CoreJob.Framework.Models.HttpAction
             if (!await ValidToken(context, options))
             {
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                await context.Response.WriteBytesAsync(await context.ResponseObjAsync("404 NotFound".Fail()));
+                await context.Response.WriteBytesAsync(await context.ResponseObjAsync("Token验证失败".Fail()));
                 return;
             }
 
@@ -83,17 +83,15 @@ namespace CoreJob.Framework.Models.HttpAction
             return false;
         }
 
-        private async Task<bool> ValidToken(HttpContext context, JobOptions options)
+        private ValueTask<bool> ValidToken(HttpContext context, JobOptions options)
         {
             context.Request.Headers.TryGetValue(JobConstant.Token, out StringValues token);
             if (!string.IsNullOrEmpty(options.Token) && token != options.Token)
             {
-                await context.Response.WriteBytesAsync(await context.ResponseObjAsync("Token验证失败".Fail()));
-                _logger.LogError($"token验证失败:{context.Request.Path.Value}");
-                return false;
+                return new ValueTask<bool>(false);
             }
 
-            return true;
+            return new ValueTask<bool>(true);
         }
     }
 }

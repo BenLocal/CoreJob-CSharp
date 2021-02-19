@@ -6,9 +6,11 @@ using CoreJob.Framework;
 using CoreJob.Framework.Models;
 using CoreJob.Framework.Models.Response;
 using CoreJob.Server.Framework.Store;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Quartz;
+using Z.EntityFramework.Plus;
 
 namespace CoreJob.Server.Framework.Listener
 {
@@ -19,8 +21,6 @@ namespace CoreJob.Server.Framework.Listener
     public class LogListener : IJobListener, ITriggerListener
     {
         public string Name { get; set; } = "LogListener";
-
-        //private readonly JobDbContext _dbContext;
 
         private readonly ILogger<LogListener> _logger;
 
@@ -54,20 +54,22 @@ namespace CoreJob.Server.Framework.Listener
         public async Task JobToBeExecuted(IJobExecutionContext context, CancellationToken cancellationToken = default)
         {
             var jobInfo = context.Trigger.JobDataMap.GetMapData<JobInfo>();
-
             using (var scope = _provider.CreateScope())
             using (var _dbContext = scope.ServiceProvider.GetRequiredService<JobDbContext>())
             {
-                var jobExecutor = await _dbContext.JobExecuter.FindAsync(jobInfo.ExecutorId);
-                if (jobExecutor == null || jobExecutor.RegistryHosts.NullOrEmpty())
+                var jobExecutor = await _dbContext.JobExecuter.Include(x => x.RegistryHosts).FirstOrDefaultAsync(x => x.Id == jobInfo.ExecutorId);
+                if (jobExecutor == null || jobExecutor.RegistryHosts.IsNullOrEmptyList())
                 {
                     _logger.LogError("没有找到执行器，任务中断");
+                    context.Trigger.JobDataMap.Put(JobConstant.MAP_DATA_HAS_ERROR, true);
                     return;
                 }
-                // 找到合适的执行host
-                var host = jobExecutor.RegistryHosts.Split(",").FirstOrDefault();
 
-                context.Trigger.JobDataMap.SetMapData(jobExecutor);
+                context.Trigger.JobDataMap.Put(JobConstant.MAP_DATA_HAS_ERROR, false);
+
+                // 找到合适的执行host
+                var registryHost = jobExecutor.RegistryHosts.FirstOrDefault();
+                context.Trigger.JobDataMap.SetMapData(registryHost);
 
                 var logInfo = new JobLog()
                 {
@@ -76,14 +78,14 @@ namespace CoreJob.Server.Framework.Listener
                     ExecuterHandler = jobInfo.ExecutorHandler,
                     ExecuterParam = jobInfo.ExecutorParam,
                     ExecuterId = jobInfo.ExecutorId,
-                    ExecuterHost = host,
+                    ExecuterHost = registryHost.Host,
                     Status = JobLogStatus.Running
                 };
 
                 await _dbContext.JobLog.AddAsync(logInfo);
                 await _dbContext.SaveChangesAsync();
 
-                context.Trigger.JobDataMap.Put(JobConstant.MAP_DATA_EXECUTER_HOST_KEY, host);
+                context.Trigger.JobDataMap.Put(JobConstant.MAP_DATA_EXECUTER_HOST_KEY, registryHost.Host);
                 context.Trigger.JobDataMap.SetMapData(logInfo);
             }    
         }
@@ -97,6 +99,11 @@ namespace CoreJob.Server.Framework.Listener
         /// <returns></returns>
         public async Task JobWasExecuted(IJobExecutionContext context, JobExecutionException jobException, CancellationToken cancellationToken = default)
         {
+            var hasError = context.Trigger.JobDataMap.GetBoolean(JobConstant.MAP_DATA_HAS_ERROR);
+            if (hasError)
+            {
+                return;
+            }
             var logInfo = context.Trigger.JobDataMap.GetMapData<JobLog>();
             logInfo.HandlerTime = DateTime.Now;
             // 错误

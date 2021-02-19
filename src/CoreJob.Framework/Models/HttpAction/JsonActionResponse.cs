@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using CoreJob.Framework.Json.Extensions;
 using Microsoft.AspNetCore.Http;
 
 namespace CoreJob.Framework.Models.HttpAction

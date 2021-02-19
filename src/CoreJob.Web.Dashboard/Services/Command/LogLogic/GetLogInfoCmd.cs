@@ -7,7 +7,7 @@ using CoreJob.Server.Framework.Store;
 using CoreJob.Web.Dashboard.Models;
 using MediatR;
 
-namespace CoreJob.Web.Dashboard.Services.Command.Log
+namespace CoreJob.Web.Dashboard.Services.Command.LogLogic
 {
     public class GetLogInfoCmd : IRequest<JsonEntityBase>
     {

@@ -59,5 +59,11 @@ namespace CoreJob.Web.Dashboard.Controllers
             var reslut = await _mediator.Send(new DeleteExecuterCmd() { ExecuterId = id });
             return Ok(reslut);
         }
+
+        public async Task<IActionResult> DeleteHost([FromRoute] int id)
+        {
+            var reslut = await _mediator.Send(new DeleteExecuterHostCmd() { Id = id });
+            return Ok(reslut);
+        }
     }
 }

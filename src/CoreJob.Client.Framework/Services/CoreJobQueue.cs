@@ -82,14 +82,16 @@ namespace CoreJob.Client.Framework.Services
                         using (_logger.BeginScope(properies))
                         {
                             var result = await _sender.Execute(job);
-
+                            job.CallBackCode = result.Code;
                             if (result.Code == JobConstant.HTTP_FAIL_CODE)
                             {
                                 _logger.LogError($"执行失败. Id:{job.Id}, Msg: {result.Msg}");
+                                job.Reason = result.Msg;
                             }
-
-                            job.CallBackCode = result.Code;
-                            job.Reason = result.Content;
+                            else
+                            {
+                                job.Reason = result.Content;
+                            }
                         }
                         await _sender.CallBack(new List<JobMessage>() { job });
                     }

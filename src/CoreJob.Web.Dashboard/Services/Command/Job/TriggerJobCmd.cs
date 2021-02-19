@@ -8,7 +8,7 @@ using CoreJob.Web.Dashboard.Models;
 using MediatR;
 using Quartz;
 
-namespace CoreJob.Web.Dashboard.Services.Command
+namespace CoreJob.Web.Dashboard.Services.Command.Job
 {
     public class TriggerJobCmd : IRequest<JsonEntityBase>
     {

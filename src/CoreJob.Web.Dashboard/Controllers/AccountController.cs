@@ -41,8 +41,6 @@ namespace CoreJob.Web.Dashboard.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login(UserViewModel model)
         {
-            var user = await _dbContext.User.FirstOrDefaultAsync(x => x.Name == model.UserName);
-
             if (model.UserName.NullOrEmpty())
             {
                 return Ok("用户名不能为空".Error());
@@ -51,6 +49,13 @@ namespace CoreJob.Web.Dashboard.Controllers
             if (model.Password.NullOrEmpty())
             {
                 return Ok("密码不能为空".Error());
+            }
+
+            var user = await _dbContext.User.FirstOrDefaultAsync(x => x.Name == model.UserName);
+
+            if (user == null)
+            {
+                return Ok("用户名不正确".Error());
             }
 
             if (user.HashPassword != model.Password.MD5Encrypt())

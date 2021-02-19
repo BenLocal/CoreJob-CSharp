@@ -139,11 +139,6 @@ namespace CoreJob.Server.Store.Mysql.Migrations
                         .HasColumnType("varchar(100) CHARACTER SET utf8mb4")
                         .HasColumnName("name");
 
-                    b.Property<string>("RegistryHosts")
-                        .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000) CHARACTER SET utf8mb4")
-                        .HasColumnName("registry_hosts");
-
                     b.Property<string>("RegistryKey")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -238,6 +233,35 @@ namespace CoreJob.Server.Store.Mysql.Migrations
                     b.ToTable("job_log");
                 });
 
+            modelBuilder.Entity("CoreJob.Server.Framework.Store.RegistryHost", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    b.Property<int>("ExecuterId")
+                        .HasColumnType("int")
+                        .HasColumnName("executer_id");
+
+                    b.Property<string>("Host")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4")
+                        .HasColumnName("host");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int")
+                        .HasColumnName("order");
+
+                    b.HasKey("Id")
+                        .HasName("id");
+
+                    b.HasIndex("ExecuterId");
+
+                    b.ToTable("registry_host");
+                });
+
             modelBuilder.Entity("CoreJob.Server.Framework.Store.RegistryInfo", b =>
                 {
                     b.Property<int>("Id")
@@ -273,6 +297,22 @@ namespace CoreJob.Server.Store.Mysql.Migrations
                     b.HasIndex("Name");
 
                     b.ToTable("registry_info");
+                });
+
+            modelBuilder.Entity("CoreJob.Server.Framework.Store.RegistryHost", b =>
+                {
+                    b.HasOne("CoreJob.Server.Framework.Store.JobExecuter", "JobExecuter")
+                        .WithMany("RegistryHosts")
+                        .HasForeignKey("ExecuterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("JobExecuter");
+                });
+
+            modelBuilder.Entity("CoreJob.Server.Framework.Store.JobExecuter", b =>
+                {
+                    b.Navigation("RegistryHosts");
                 });
 #pragma warning restore 612, 618
         }

@@ -24,6 +24,12 @@ namespace CoreJob.Server.Framework.Jobs
 
         public async Task Execute(IJobExecutionContext context)
         {
+            var hasError = context.Trigger.JobDataMap.GetBoolean(JobConstant.MAP_DATA_HAS_ERROR);
+            if (hasError)
+            {
+                return;
+            }
+
             JobInfo job = context.Trigger.JobDataMap.GetMapData<JobInfo>();
             var logInfo = context.Trigger.JobDataMap.GetMapData<JobLog>();
             var host = context.Trigger.JobDataMap.GetString(JobConstant.MAP_DATA_EXECUTER_HOST_KEY);

@@ -1,4 +1,8 @@
-﻿<div class="ui small left icon input">
+﻿@{
+    ViewData["Title"] = "执行器";
+}
+
+<div class="ui small left icon input">
     <input type="text" placeholder="Search Trigger..." id="search-trigger">
     <i class="search icon"></i>
 </div>
@@ -48,7 +52,10 @@
             {{item.registry_key}}
         </td>
         <td class="executer-registry-hosts">
-            {{item.registry_hosts}}
+            {{# if(item.registry_hosts && item.registry_hosts.length > 0) { $.each(item.registry_hosts, function(index, host){}}
+            {{host}}
+            {{# }); } else {}}
+            {{# } }}
         </td>
     </tr>
     {{#  }); }}

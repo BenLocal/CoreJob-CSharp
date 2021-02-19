@@ -6,6 +6,7 @@ using CoreJob.Server.Framework.Store;
 using CoreJob.Web.Dashboard.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Z.EntityFramework.Plus;
 
 namespace CoreJob.Web.Dashboard.Services.Command.Executer
 {
@@ -28,16 +29,24 @@ namespace CoreJob.Web.Dashboard.Services.Command.Executer
             {
                 var query = _dbContext.JobExecuter.AsQueryable();
 
-                var count = await query.CountAsync(cancellationToken).ConfigureAwait(false);
-                var items = await query.Skip((request.PageIndex - 1) * request.PageSize)
-                                        .Take(request.PageSize)
-                                        .ToListAsync(cancellationToken)
-                                        .ConfigureAwait(false);
+                var countFuture = query.DeferredCount().FutureValue();
+                var itemsFuture = query.Include(x => x.RegistryHosts).OrderBy(x => x.Id)
+                                        .Skip((request.PageIndex - 1) * request.PageSize)
+                                        .Take(request.PageSize).Future();
 
+                var total = await countFuture.ValueAsync();
+                var items = await itemsFuture.ToListAsync();
                 return new
                 {
-                    total = count,
-                    rows = items
+                    total = total,
+                    rows = items.Select(x => new {
+                        Id = x.Id,
+                        InTime = x.InTime,
+                        Name = x.Name,
+                        RegistryHosts = x.RegistryHosts?.Select(x => x.Host),
+                        RegistryKey = x.RegistryKey,
+                        UpdateTime = x.UpdateTime
+                    })
                 }.Success();
             }
         }

@@ -9,7 +9,7 @@ using CoreJob.Web.Dashboard.Models;
 using FluentValidation;
 using MediatR;
 
-namespace CoreJob.Web.Dashboard.Services.Command
+namespace CoreJob.Web.Dashboard.Services.Command.Job
 {
     public class SaveJobCmd : IRequest<JsonEntityBase>
     {
@@ -44,7 +44,6 @@ namespace CoreJob.Web.Dashboard.Services.Command
                 if (model.IsNew || model.JobId <= 0)
                 {
                     // add
-                    //await _dbContext.JobInfo.FirstOrDefaultAsync(x => x.Name == model.JobName);
                     var job = new JobInfo()
                     {
                         Cron = model.Cron,
@@ -72,7 +71,11 @@ namespace CoreJob.Web.Dashboard.Services.Command
                     job.Name = model.JobName;
                     job.UpdateTime = DateTime.Now;
                     job.ExecutorId = model.ExecutorId;
-                    job.Status = request.Trigger ? 1 : 0;
+
+                    if (request.Trigger)
+                    {
+                        job.Status = 1;
+                    }
 
                     await _jobSchedulerHandler.AddOrUpdateJob(job, request.Trigger);
                     await _dbContext.SaveChangesAsync();

@@ -1,8 +1,8 @@
-﻿@using CoreJob.Framework
+﻿@using CoreJob.Framework.Json.Extensions
 @model CoreJob.Web.Dashboard.Models.DashboardViewModel
 
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "首页";
 }
 
 <div id="scheduler-dashboard">
@@ -54,99 +54,216 @@
         </div>
     </div>
     <h4 class="ui horizontal divider header">
-        <i class="bar chart icon"></i>
+        <i class="bar chart line icon"></i>
     </h4>
-    <div id="lineChart" style="height: 350px; -webkit-tap-highlight-color: transparent; user-select: none; position: relative; display:none;"></div>
+    <div class="ui tabular menu">
+        <div class="active item" data-tab="log">任务统计图</div>
+        <div class="item" data-tab="cpu">系统统计图</div>
+    </div>
+    <div class="ui tab active" data-tab="log">
+        <div id="lineChart" style="height: 350px; width:1000px; -webkit-tap-highlight-color: transparent; user-select: none; position: relative; display:none;"></div>
+    </div>
+    <div class="ui tab" data-tab="cpu">
+        <div id="cupChart" style="height: 350px; width:1000px; -webkit-tap-highlight-color: transparent; user-select: none; position: relative; display:none;"></div>
+    </div>
 </div>
 
 @section Scripts
 {
     <script src="~/js/echarts.common.min.js"></script>
+    <script src="~/lib/microsoft-signalr/signalr.min.js"></script>
     <script>
-        var hasData = '@Model.HasData';
-        function lineChartInit() {
-            var option = {
-                title: {
-                    text: "日期分布图"
+    var hasData = '@Model.HasData';
+    var cpuData = [];
+    var cpuTime = [];
+    function lineChartInit() {
+        var option = {
+            title: {
+                text: "日期分布图"
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross',
+                    label: {
+                        backgroundColor: '#6a7985'
+                    }
+                }
+            },
+            legend: {
+                data: ["成功", "失败", "执行中"]
+            },
+            toolbox: {
+                feature: {
+                    /*saveAsImage: {}*/
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: @Html.Raw(Model.DataTimeList.SerializeObject())
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value'
+                }
+            ],
+            series: [
+                {
+                    name: "成功",
+                    type: 'line',
+                    stack: 'Total',
+                    areaStyle: { normal: {} },
+                    data: [@string.Join(",", @Model.SuccessCountList)]
                 },
-                tooltip: {
-                    trigger: 'axis',
-                    axisPointer: {
-                        type: 'cross',
-                        label: {
-                            backgroundColor: '#6a7985'
+                {
+                    name: "失败",
+                    type: 'line',
+                    stack: 'Total',
+                    label: {
+                        normal: {
+                            show: true,
+                            position: 'top'
                         }
-                    }
-                },
-                legend: {
-                    data: ["成功", "失败", "执行中"]
-                },
-                toolbox: {
-                    feature: {
-                        /*saveAsImage: {}*/
-                    }
-                },
-                grid: {
-                    left: '3%',
-                    right: '4%',
-                    bottom: '3%',
-                    containLabel: true
-                },
-                xAxis: [
-                    {
-                        type: 'category',
-                        boundaryGap: false,
-                        data: @Html.Raw(Model.DataTimeList.SerializeObject())
-                    }
-                ],
-                yAxis: [
-                    {
-                        type: 'value'
-                    }
-                ],
-                series: [
-                    {
-                        name: "成功",
-                        type: 'line',
-                        stack: 'Total',
-                        areaStyle: { normal: {} },
-                        data: [@string.Join(",", @Model.SuccessCountList)]
                     },
-                    {
-                        name: "失败",
-                        type: 'line',
-                        stack: 'Total',
-                        label: {
-                            normal: {
-                                show: true,
-                                position: 'top'
-                            }
-                        },
-                        areaStyle: { normal: {} },
-                        data: [@string.Join(",", @Model.FailCountList)]
-                    },
-                    {
-                        name: "执行中",
-                        type: 'line',
-                        stack: 'Total',
-                        areaStyle: { normal: {} },
-                        data: [@string.Join(",", @Model.RunningCountList)]
-                    }
-                ],
-                color: ['#00A65A', '#c23632', '#F39C12']
-            };
+                    areaStyle: { normal: {} },
+                    data: [@string.Join(",", @Model.FailCountList)]
+                },
+                {
+                    name: "执行中",
+                    type: 'line',
+                    stack: 'Total',
+                    areaStyle: { normal: {} },
+                    data: [@string.Join(",", @Model.RunningCountList)]
+                }
+            ],
+            color: ['#00A65A', '#c23632', '#F39C12']
+        };
 
-            var elem = $("#lineChart");
-            elem.show();
-            var lineChart = echarts.init(elem[0]);
-            lineChart.setOption(option);
+        var elem = $("#lineChart");
+        elem.show();
+        var lineChart = echarts.init(elem[0]);
+        lineChart.setOption(option);
+
+        return lineChart;
+    }
+
+    function clientCupHub() {
+        var connection = new signalR.HubConnectionBuilder()
+            .withUrl("/hub/cpu")
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+
+        async function start() {
+            try {
+                await connection.start();
+                console.log("SignalR Connected.");
+            } catch (err) {
+                console.log(err);
+                setTimeout(start, 5000);
+            }
+        };
+
+        connection.onclose(start);
+
+        connection.on("PushCupData", (date, value) => {
+            cpuTime.push(date);
+            cpuData.push(value);
+        });
+        start();
+    }
+
+    function cpuChartInit() {
+        var option = {
+            title: {
+                text: 'cpu占用率'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross',
+                    label: {
+                        backgroundColor: '#6a7985'
+                    }
+                }
+            },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                splitLine: {
+                    show: true,//是否显示网格线
+                },
+                name : "时间"
+            },
+            yAxis: {
+                boundaryGap: [0, '50%'],
+                type: 'value',
+                axisLabel: {
+                    formatter: '{value}'
+                },
+                name: "单位（%）",
+                splitLine: {
+                    show: true,//是否显示网格线
+                },
+                max: 100
+            },
+            series: [
+                {
+                    name: 'CPU',
+                    type: 'line',
+                    smooth: true,
+                    symbol: 'none',
+                    stack: 'a',
+                    data: cpuData
+                }
+            ]
+        };
+
+        var elem = $("#cupChart");
+        elem.show();
+        var cpuChart = echarts.init(elem[0]);
+        cpuChart.setOption(option);
+
+        setInterval(function () {
+            cpuChart.setOption({
+                xAxis: {
+                    data: cpuTime,
+                },
+                series: [{
+                    name: 'CPU',
+                    data: cpuData
+                }]
+            });
+        }, 1500);
+
+        return cpuChart;
+    }
+
+    $(function () {
+        var lineChart;
+        if (hasData) {
+            lineChart = lineChartInit();
         }
 
-        $(function () {
-            if (hasData) {
-                lineChartInit();
-            }
-        });
+        clientCupHub();
+        var cpuChart = cpuChartInit();
+        $('.tabular.menu .item').tab();
+        //$('.shape').shape();
+        //$("#job_chart_btn").click(function () {
+        //    $('.shape').shape('set next side', '#first_shape_side').shape('flip up');
+        //});
+        //$("#cpu_chart_btn").click(function () {
+        //    $('.shape').shape('set next side', '#second_shape_side').shape('flip up');
+        //});
+    });
     </script>
 }
 

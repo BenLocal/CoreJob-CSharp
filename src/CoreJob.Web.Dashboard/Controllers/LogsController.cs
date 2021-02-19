@@ -2,17 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CoreJob.Web.Dashboard.Services.Command.Log;
+using CoreJob.Web.Dashboard.Services.Command;
+using CoreJob.Web.Dashboard.Services.Command.LogLogic;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CoreJob.Web.Dashboard.Controllers
 {
-    public class LogController : BaseController
+    public class LogsController : BaseController
     {
         private readonly IMediator _mediator;
 
-        public LogController(IMediator mediator)
+        public LogsController(IMediator mediator)
         {
             _mediator = mediator;
         }

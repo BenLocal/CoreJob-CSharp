@@ -1,9 +1,13 @@
 ﻿@model CoreJob.Web.Dashboard.Models.JobTriggerViewModel
 
+@{
+    ViewData["Title"] = "任务";
+}
+
 <form class="ui form" id="form" method="post" enctype="multipart/form-data">
     <div class="ui clearing basic segment" style="padding: 0px" id="header">
         <div style="float: right">
-            <a class="ui button" id="btn-discard" href='@Url.Action("index", "job")'>取消</a>
+            <a class="ui button" id="btn-discard" href='@Url.Action("index", "job")'>返回</a>
             <div class="ui green button" id="btn-trigger"><i class="play icon"></i>开始执行</div>
         </div>
         <h1 class="ui left floated header">@Model.JobName<a title="编辑" href="@Url.Action("edit", "job")?job=@Model.JobId"><i class="external alternate tiny icon"></i></a></h1>

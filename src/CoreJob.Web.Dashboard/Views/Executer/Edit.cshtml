@@ -1,5 +1,8 @@
 ﻿@model CoreJob.Web.Dashboard.Models.ExecuterViewModel
 
+@{
+    ViewData["Title"] = "执行器";
+}
 <form class="ui form" id="form" enctype="multipart/form-data">
     <div class="ui clearing basic segment" style="padding: 0px" id="header">
         <div style="float: right">
@@ -44,7 +47,7 @@
                 <label>注册方式</label>
                 <div class="field">
                     <div class="ui radio checkbox">
-                        @{ 
+                        @{
                             var auto = Model.Auto ? "checked" : "";
                             var unAuto = Model.Auto ? "" : "checked";
                         }
@@ -61,7 +64,47 @@
             </div>
             <div class="field accept-error">
                 <label>机器地址</label>
-                <textarea rows="3" name="RegistryHosts">@Model.RegistryHosts</textarea>
+                <table class="ui very basic single line table" id="registry_hosts">
+                    <thead>
+                        <tr>
+                            <th class="six wide">地址</th>
+                            <th class="six wide">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var list = new List<(RegistryHostsItem, string)>() {
+                                (new RegistryHostsItem(), "template")
+                            };
+
+                            if (Model.RegistryHosts != null && Model.RegistryHosts.Count > 0)
+                            {
+                                foreach (var host in Model.RegistryHosts)
+                                {
+                                    list.Add((host, string.Empty));
+                                }
+
+                            }
+
+                            list.Add((new RegistryHostsItem(), ""));
+                        }
+
+                        @for (int i = 0; i < list.Count; i++)
+                        {
+                            var (item, template) = list[i];
+                            <tr class="@template" data-row-id="@item.Id">
+                                <td class="name-col field accept-error">
+                                    <input type="hidden" data-name-base="RegistryHosts" data-name-temp="Id" value="@item.Id" />
+                                    <input type="text" data-name-base="RegistryHosts" data-name-temp="Url" placeholder="请输入地址" value="@item.Url" autocomplete="off">
+                                </td>
+                                <td class="type-col">
+                                    <a href="javascript:void(0)" class="copy-row" title="复制"><i class="large black copy outline icon"></i></a>
+                                    <a href="javascript:void(0)" class="delete-row" title="删除"><i class="red large trash alternate outline icon"></i></a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -80,6 +123,7 @@
 
 @section Scripts
 {
+    <script src="~/js/registry-hosts.js"></script>
     <script>
         function save() {
             if ($('#job-data-map .type-col .ui.dropdown.disabled').length > 0) return; // type change in progress
@@ -113,9 +157,13 @@
 
         function autoStatus(selected) {
             if (selected == 'true') {
-                $("textarea[name='RegistryHosts']").attr("disabled", "disabled");
+                $("#registry_hosts").find("input").attr("disabled", "disabled");
+                $("#registry_hosts").find(".copy-row").hide();
+                $("#registry_hosts").find(".delete-row").hide();
             } else {
-                $("textarea[name='RegistryHosts']").removeAttr("disabled");
+                $("#registry_hosts").find("input").removeAttr("disabled");
+                $("#registry_hosts").find(".copy-row").show();
+                $("#registry_hosts").find(".delete-row").show();
             }
         }
 

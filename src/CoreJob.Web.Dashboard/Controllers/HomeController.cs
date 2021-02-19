@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using CoreJob.Web.Dashboard.Models;
 using CoreJob.Server.Framework.Store;
+using CoreJob.Web.Dashboard.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
+using Z.EntityFramework.Plus;
 
 namespace CoreJob.Web.Dashboard.Controllers
 {
@@ -27,23 +25,24 @@ namespace CoreJob.Web.Dashboard.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var jobCount = await _dbContext.JobInfo.CountAsync();
-            var executerCount = await _dbContext.JobExecuter.CountAsync();
-            var runTimes = await _dbContext.JobLog.CountAsync();
+            var jobCountQuery = _dbContext.JobInfo.DeferredCount().FutureValue();
+            var executerCountQuery = _dbContext.JobExecuter.DeferredCount().FutureValue();
+            var runTimesQuery = _dbContext.JobLog.DeferredCount().FutureValue();
 
-            var chatData = await _dbContext.JobLog.Where(x => x.StartTime > DateTime.Now.AddDays(-7)).GroupBy(x => x.StartTime.Date).Select(x => new
+            var chatDataQuery = _dbContext.JobLog.AsNoTracking().Where(x => x.StartTime > DateTime.Now.AddDays(-7)).GroupBy(x => x.StartTime.Date).Select(x => new
             {
                 time = x.Key,
                 success = x.Count(x => x.Status == JobLogStatus.Success),
                 fail = x.Count(x => x.Status == JobLogStatus.Fail),
                 running = x.Count(x => x.Status == JobLogStatus.Running)
-            }).OrderBy(x => x.time).ToListAsync();
+            }).OrderBy(x => x.time).Future();
 
+            var chatData = await chatDataQuery.ToListAsync();
             var model = new DashboardViewModel()
             {
-                JobCount = jobCount,
-                ExecuterCount = executerCount,
-                RunTimes = runTimes,
+                JobCount = await jobCountQuery.ValueAsync(),
+                ExecuterCount = await executerCountQuery.ValueAsync(),
+                RunTimes = await runTimesQuery.ValueAsync(),
                 HasData = (chatData != null && chatData.Any()) ? "yes" : string.Empty ,
                 DataTimeList = chatData.Select(x => x.time.ToString("yyyy-MM-dd")).ToList(),
                 SuccessCountList = chatData.Select(x => x.success).ToList(),

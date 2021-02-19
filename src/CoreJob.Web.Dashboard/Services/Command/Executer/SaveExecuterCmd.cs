@@ -9,6 +9,7 @@ using CoreJob.Web.Dashboard.Models;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using CoreJob.Framework;
 
 namespace CoreJob.Web.Dashboard.Services.Command.Executer
 {
@@ -43,7 +44,6 @@ namespace CoreJob.Web.Dashboard.Services.Command.Executer
                     // add
                     executer = new JobExecuter()
                     {
-                        RegistryHosts = model.Auto ? string.Empty: model.RegistryHosts,
                         RegistryKey = model.RegistryKey,
                         InTime = DateTime.Now,
                         Name = model.ExecuterName,
@@ -52,29 +52,71 @@ namespace CoreJob.Web.Dashboard.Services.Command.Executer
                     };
 
                     await _dbContext.JobExecuter.AddAsync(executer);
+
+                    if (!model.Auto)
+                    {
+                        var registryHosts = model.RegistryHosts?.Where(x => x.Url.NotNullOrEmpty()).Select(x => new RegistryHost()
+                        {
+                            ExecuterId = executer.Id,
+                            Host = x.Url,
+                            Order = 0
+                        });
+
+                        if (registryHosts != null && registryHosts.Any())
+                        {
+                            await _dbContext.RegistryHost.BulkInsertAsync(registryHosts, options => {
+                                options.InsertIfNotExists = true;
+                                options.ColumnPrimaryKeyExpression = x => x.Host;
+                            });
+                        }
+                    }
+                    else
+                    {
+                        var regList = await _dbContext.RegistryInfo.OrderBy(x => x.InTime)
+                                          .Where(x => x.Name == model.RegistryKey).ToListAsync();
+
+                        if (regList != null && executer != null)
+                        {
+                            var registryHosts = regList.Select(x => new RegistryHost()
+                            {
+                                ExecuterId = executer.Id,
+                                Host = x.Host,
+                                Order = 0
+                            });
+                            await _dbContext.RegistryHost.BulkInsertAsync(registryHosts, options => {
+                                options.InsertIfNotExists = true;
+                                options.ColumnPrimaryKeyExpression = x => x.Host;
+                            });
+                        }
+                    }
+
                 }
                 else
                 {
-                    executer = await _dbContext.JobExecuter.FindAsync(model.ExecuterId);
-                    if (!model.Auto)
-                    {
-                        executer.RegistryHosts = model.RegistryHosts;
-                    }
+                    executer = await _dbContext.JobExecuter.Include(x => x.RegistryHosts).FirstOrDefaultAsync(x => x.Id == model.ExecuterId);
                     executer.RegistryKey = model.RegistryKey;
                     executer.Name = model.ExecuterName;
                     executer.UpdateTime = DateTime.Now;
                     executer.Auto = model.Auto;
-                }
 
-                if (model.Auto)
-                {
-                    var regList = await _dbContext.RegistryInfo.OrderBy(x => x.InTime)
-                        .Where(x => x.Name == model.RegistryKey).ToListAsync();
-
-                    if (regList != null && executer!= null)
+                    if (!model.Auto && model.RegistryHosts != null)
                     {
-                        executer.RegistryHosts = string.Join(",", regList.Select(x => x.Host)
-                            .Where(x => !string.IsNullOrWhiteSpace(x)));
+                        var registryHosts = model.RegistryHosts.Where(x => x.Url.NotNullOrEmpty())
+                            .Select(x => new RegistryHost()
+                        {
+                            ExecuterId = executer.Id,
+                            Host = x.Url,
+                            Order = 0,
+                            Id = x.Id
+                        });
+
+                        if (registryHosts != null && registryHosts.Any())
+                        {
+                            await _dbContext.RegistryHost.BulkMergeAsync(registryHosts, options => {
+                                options.InsertIfNotExists = true;
+                                options.ColumnPrimaryKeyExpression = x => x.Host;
+                            });
+                        }
                     }
                 }
 

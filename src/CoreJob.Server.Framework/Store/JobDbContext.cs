@@ -26,6 +26,8 @@ namespace CoreJob.Server.Framework.Store
 
         public DbSet<DashboardUser> User { get; set; }
 
+        public DbSet<RegistryHost> RegistryHost { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -73,7 +75,7 @@ namespace CoreJob.Server.Framework.Store
                 entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedOnAdd();
                 entity.Property(x => x.Name).HasColumnName("name").HasMaxLength(100).IsRequired();
                 entity.Property(x => x.RegistryKey).HasColumnName("registry_key").HasMaxLength(100).IsRequired();
-                entity.Property(x => x.RegistryHosts).HasColumnName("registry_hosts").HasMaxLength(1000);
+                //entity.Property(x => x.RegistryHosts).HasColumnName("registry_hosts").HasMaxLength(1000);
                 entity.Property(x => x.InTime).HasColumnName("in_time");
                 entity.Property(x => x.UpdateTime).HasColumnName("update_time");
                 entity.Property(x => x.Auto).HasColumnName("auto");
@@ -119,6 +121,20 @@ namespace CoreJob.Server.Framework.Store
 
                 entity.HasIndex(x => x.Name);
             });
+
+            modelBuilder.Entity<RegistryHost>(entity =>
+            {
+                entity.ToTable("registry_host");
+                entity.HasKey(x => x.Id).HasName("id");
+                entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedOnAdd();
+                entity.Property(x => x.ExecuterId).HasColumnName("executer_id");
+                entity.Property(x => x.Host).HasColumnName("host").HasMaxLength(100).IsRequired();
+                entity.Property(x => x.Order).HasColumnName("order");
+
+                entity.HasOne(x => x.JobExecuter).WithMany(x => x.RegistryHosts).HasForeignKey(x => x.ExecuterId);
+            });
+
+            
         }
     }
 }

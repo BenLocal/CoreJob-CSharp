@@ -6,7 +6,7 @@ using CoreJob.Server.Framework.Store;
 using CoreJob.Web.Dashboard.Models;
 using MediatR;
 
-namespace CoreJob.Web.Dashboard.Services.Command
+namespace CoreJob.Web.Dashboard.Services.Command.Job
 {
     public class DeleteJobCmd : IRequest<JsonEntityBase>
     {

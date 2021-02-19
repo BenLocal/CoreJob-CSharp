@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CoreJob.Framework;
 using CoreJob.Server.Framework.Abstractions;
 using CoreJob.Server.Framework.Store;
 using Microsoft.EntityFrameworkCore;
@@ -37,14 +38,16 @@ namespace CoreJob.Server.Framework.Jobs
                     // remove
                     _dbContext.RegistryInfo.Remove(registry);
 
-                    var jobExecuter = _dbContext.JobExecuter.FirstOrDefault(x => x.RegistryKey == registry.Name && x.Auto);
-                    if (jobExecuter != null && !string.IsNullOrEmpty(jobExecuter.RegistryHosts))
+                    var jobExecuter = _dbContext.JobExecuter.Include(x => x.RegistryHosts).FirstOrDefault(x => x.RegistryKey == registry.Name && x.Auto);
+                    if (jobExecuter != null && jobExecuter.RegistryHosts.NotNullOrEmptyList())
                     {
-                        var temp = jobExecuter.RegistryHosts.Split(",").ToList();
-                        if (temp.Contains(registry.Host))
+                        foreach (var item in jobExecuter.RegistryHosts)
                         {
-                            temp.Remove(registry.Host);
-                            jobExecuter.RegistryHosts = string.Join(",", temp);
+                            if (item.Host == registry.Host)
+                            {
+                                jobExecuter.RegistryHosts.Remove(item);
+                                break;
+                            }
                         }
                     }
                 }

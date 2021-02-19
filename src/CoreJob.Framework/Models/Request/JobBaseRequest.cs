@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using MessagePack;
-using Newtonsoft.Json;
 
 namespace CoreJob.Framework.Models.Request
 {
@@ -13,7 +14,7 @@ namespace CoreJob.Framework.Models.Request
         /// 任务ID
         /// </summary>
         [Key(0)]
-        [JsonProperty("jobId")]
+        [JsonPropertyName("jobId")]
         public int JobId { get; set; }
     }
 }

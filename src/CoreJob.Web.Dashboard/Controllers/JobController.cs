@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using CoreJob.Web.Dashboard.Models;
-using CoreJob.Web.Dashboard.Services.Command;
+using CoreJob.Web.Dashboard.Services.Command.Job;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Quartz;
@@ -19,7 +18,13 @@ namespace CoreJob.Web.Dashboard.Controllers
             _mediator = mediator;
         }
 
-        public IActionResult Index() => View();
+        public async Task<IActionResult> Index()
+        {
+            var result = await _mediator.Send(new JobListIndexCmd());
+            return View(result);
+        }
+
+        public IActionResult Cron() => View();
 
         public async Task<IActionResult> New()
         {
@@ -72,7 +77,11 @@ namespace CoreJob.Web.Dashboard.Controllers
             var list = await _mediator.Send(new GetJobListCmd()
             { 
                 PageIndex = model.PageNum,
-                PageSize = model.PageSize
+                PageSize = model.PageSize,
+                SearchJobName = model.SearchJobName,
+                SearchExecutorId = model.SearchExecutorId,
+                SearchCreateUser = model.SearchCreateUser,
+                SearchStatus = model.SearchStatus
             });
             return Ok(list);
         }
@@ -125,7 +134,10 @@ namespace CoreJob.Web.Dashboard.Controllers
             string desc = "格式错误";
             try
             {
-                desc = CronExpressionDescriptor.ExpressionDescriptor.GetDescription(cron);
+                desc = CronExpressionDescriptor.ExpressionDescriptor.GetDescription(cron, new CronExpressionDescriptor.Options()
+                { 
+                    Locale = "zh-cn"
+                });
             }
             catch
             {

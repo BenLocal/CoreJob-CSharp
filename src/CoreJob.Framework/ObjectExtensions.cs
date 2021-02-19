@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using MessagePack;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace CoreJob.Framework
 {
@@ -34,6 +34,17 @@ namespace CoreJob.Framework
         { 
             return value != null;
         }
+
+        public static bool NotNullOrEmptyList<T>(this ICollection<T> value)
+        {
+            return value != null && value.Any();
+        }
+
+        public static bool IsNullOrEmptyList<T>(this ICollection<T> value)
+        {
+            return value == null || !value.Any();
+        }
+
 
         public static string GetDescription<T>(this T enumItem) where T : struct
         {
@@ -75,91 +86,5 @@ namespace CoreJob.Framework
         {
             return MessagePackSerializer.Deserialize<T>(bytes, MessagePack.Resolvers.ContractlessStandardResolver.Options);
         }
-
-        public static T DeserializeObject<T>(this string str, JsonSerializerSettings settings) where T : class
-        {
-            if (string.IsNullOrEmpty(str))
-            {
-                return null;
-            }
-
-            try
-            {
-                return JsonConvert.DeserializeObject<T>(str, settings);
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
-        public static T DeserializeObject<T>(this string str) where T : class
-            => DeserializeObject<T>(str, null);
-
-        public static T DeserializeSnakeCaseObject<T>(this string str) where T : class
-            => DeserializeObject<T>(str, new JsonSerializerSettings()
-            {
-                ContractResolver = new DefaultContractResolver()
-                {
-                    NamingStrategy = new SnakeCaseNamingStrategy()
-                }
-            });
-
-        public static string SerializeObject(this object obj, JsonSerializerSettings settings)
-        {
-            if (obj == null)
-            {
-                return null;
-            }
-
-            try
-            {
-                return JsonConvert.SerializeObject(obj, settings);
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
-        public static string SerializeObject(this object obj)
-            => SerializeObject(obj, null);
-
-        public static string SerializeSnakeCaseObject(this object obj)
-           => SerializeObject(obj, new JsonSerializerSettings()
-           {
-               ContractResolver = new DefaultContractResolver
-               {
-                   NamingStrategy = new SnakeCaseNamingStrategy()
-               }
-           });
-
-        public static string ToHexString(this byte[] hex)
-        {
-            if (hex == null) return null;
-            if (hex.Length == 0) return string.Empty;
-
-            var s = new StringBuilder();
-            foreach (byte b in hex)
-            {
-                s.Append(b.ToString("x2"));
-            }
-            return s.ToString();
-        }
-
-        public static byte[] ToHexBytes(this string hex)
-        {
-            if (hex == null) return null;
-            if (hex.Length == 0) return new byte[0];
-
-            int l = hex.Length / 2;
-            var b = new byte[l];
-            for (int i = 0; i < l; ++i)
-            {
-                b[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
-            }
-            return b;
-        }
-
     }
 }

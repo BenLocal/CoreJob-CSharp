@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CoreJob.Server.Framework.Store;
 using CoreJob.Web.Dashboard.Models;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace CoreJob.Web.Dashboard.Services.Command.Executer
 {
@@ -25,14 +26,18 @@ namespace CoreJob.Web.Dashboard.Services.Command.Executer
 
             public async Task<ExecuterViewModel> Handle(ExecuterEditCmd request, CancellationToken cancellationToken)
             {
-                var info = await _dbContext.JobExecuter.FindAsync(request.ExecuterId);
+                var info = await _dbContext.JobExecuter.Include(x => x.RegistryHosts).FirstOrDefaultAsync(x => x.Id == request.ExecuterId);
 
                 return new ExecuterViewModel()
                 {
                     IsNew = false,
                     ExecuterName = info.Name,
                     ExecuterId = info.Id,
-                    RegistryHosts = info.RegistryHosts,
+                    RegistryHosts = info.RegistryHosts?.Select(x => new RegistryHostsItem()
+                    { 
+                        Id = x.Id,
+                        Url = x.Host
+                    }).ToList(),
                     RegistryKey = info.RegistryKey
                 };
             }

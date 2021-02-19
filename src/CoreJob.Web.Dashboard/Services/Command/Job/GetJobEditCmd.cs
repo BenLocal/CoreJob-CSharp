@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,8 +8,10 @@ using CoreJob.Web.Dashboard.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Z.EntityFramework.Plus;
 
-namespace CoreJob.Web.Dashboard.Services.Command
+namespace CoreJob.Web.Dashboard.Services.Command.Job
 {
     public class GetJobEditCmd : IRequest<JobViewModel>
     {
@@ -36,7 +39,10 @@ namespace CoreJob.Web.Dashboard.Services.Command
                 };
 
                 // 获取所有Executor
-                var executers = await _dbContext.JobExecuter.Select(x => new { value = x.Id, text = x.Name }).ToListAsync();
+                var executers = await _dbContext.JobExecuter.Select(x => new { value = x.Id, text = x.Name }).FromCacheAsync(new MemoryCacheEntryOptions()
+                { 
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2)
+                });
                 var seelctItems = new List<SelectListItem>()
                 {
                     new SelectListItem("请选择执行器", "0")
@@ -44,7 +50,7 @@ namespace CoreJob.Web.Dashboard.Services.Command
 
                 if (executers != null)
                 {
-                    executers.ForEach(x => seelctItems.Add(new SelectListItem(x.text, x.value.ToString())));
+                    executers.ToList().ForEach(x => seelctItems.Add(new SelectListItem(x.text, x.value.ToString())));
                 }
 
                 vm.ExecutorItems = seelctItems;

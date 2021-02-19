@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>ea1ff10e-64b2-4694-bd80-f243e9521647</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +19,11 @@
   <ItemGroup>
     <ProjectReference Include="..\CoreJob.Server.Framework\CoreJob.Server.Framework.csproj" />
     <ProjectReference Include="..\CoreJob.Server.Store.Mysql\CoreJob.Server.Store.Mysql.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Dockerfile">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   
 </Project>

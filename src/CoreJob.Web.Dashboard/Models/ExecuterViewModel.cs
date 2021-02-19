@@ -15,8 +15,15 @@ namespace CoreJob.Web.Dashboard.Models
 
         public string RegistryKey { get; set; }
 
-        public string RegistryHosts { get; set; }
+        public List<RegistryHostsItem> RegistryHosts { get; set; }
 
         public bool Auto { get; set; } = true;
+    }
+
+    public class RegistryHostsItem
+    {
+        public string Url { get; set; }
+
+        public int Id { get; set; }
     }
 }

@@ -1,36 +1,36 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 using FluentValidation.Results;
 using static CoreJob.Web.Dashboard.Models.JsonEntityExtensions;
 
 namespace CoreJob.Web.Dashboard.Models
 {
-    [DataContract]
     public class JsonEntityBase
     {
-        [DataMember(Name = "cod")]
+        [JsonPropertyName("cod")]
         public string Code { set; get; }
 
-        [DataMember(Name = "msg")]
+        [JsonPropertyName("msg")]
         public string Message { get; set; }
 
-        [DataMember(Name = "fs")]
+        [JsonPropertyName("fs")]
         public IEnumerable<FailureInfo> Failures { get; set; }
 
-        [DataMember(Name = "suc")]
+        [JsonPropertyName("suc")]
         public bool IsSuccess { get; set; }
     }
 
     public class JsonEntityDataBase<T> : JsonEntityBase
     {
-        [DataMember(Name = "data")]
+        [JsonPropertyName("data")]
         public T Data { get; set; }
     }
 
     public class JsonEntityListDataBase<T> : JsonEntityBase
     {
-        [DataMember(Name = "data")]
+        [JsonPropertyName("data")]
         public List<T> Data { get; set; }
     }
 

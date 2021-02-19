@@ -7,7 +7,7 @@ using CoreJob.Web.Dashboard.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace CoreJob.Web.Dashboard.Services.Command.Log
+namespace CoreJob.Web.Dashboard.Services.Command.LogLogic
 {
     public class GetLogListCmd : IRequest<JsonEntityBase>
     {
@@ -35,7 +35,7 @@ namespace CoreJob.Web.Dashboard.Services.Command.Log
                 }
 
                 var count = await query.CountAsync(cancellationToken).ConfigureAwait(false);
-                var items = await query.OrderByDescending(x => x.StartTime).Skip((request.PageIndex - 1) * request.PageSize)
+                var items = await query.OrderBy(x => x.Id).OrderByDescending(x => x.StartTime).Skip((request.PageIndex - 1) * request.PageSize)
                                         .Take(request.PageSize)
                                         .ToListAsync(cancellationToken)
                                         .ConfigureAwait(false);

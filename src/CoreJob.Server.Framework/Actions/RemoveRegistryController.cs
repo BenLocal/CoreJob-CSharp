@@ -10,6 +10,7 @@ using CoreJob.Framework.Models.Request;
 using CoreJob.Framework.Models.Response;
 using CoreJob.Server.Framework.Store;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace CoreJob.Server.Framework.Actions
 {
@@ -38,18 +39,19 @@ namespace CoreJob.Server.Framework.Actions
             {
                 _dbContext.RegistryInfo.Remove(db);
 
-                var jobExecuter = _dbContext.JobExecuter.FirstOrDefault(x => x.RegistryKey == db.Name && x.Auto);
-                if (jobExecuter != null && !string.IsNullOrEmpty(jobExecuter.RegistryHosts))
+                var jobExecuter = _dbContext.JobExecuter.Include(x => x.RegistryHosts).FirstOrDefault(x => x.RegistryKey == db.Name && x.Auto);
+                if (jobExecuter != null && jobExecuter.RegistryHosts.NotNullOrEmptyList())
                 {
-                    var temp = jobExecuter.RegistryHosts.Split(",").ToList();
-                    if (temp.Contains(host))
+                    foreach (var item in jobExecuter.RegistryHosts)
                     {
-                        temp.Remove(host);
-                        jobExecuter.RegistryHosts = string.Join(",", temp);
+                        if (item.Host == host)
+                        {
+                            jobExecuter.RegistryHosts.Remove(item);
+                            break;
+                        }
                     }
                 }
             }
-
 
             await _dbContext.SaveChangesAsync();
 

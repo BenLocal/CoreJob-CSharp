@@ -5,6 +5,10 @@
     {
       "library": "semantic-ui@2.4.1",
       "destination": "wwwroot/lib/semantic-ui/"
+    },
+    {
+      "library": "microsoft-signalr@5.0.2",
+      "destination": "wwwroot/lib/microsoft-signalr/"
     }
   ]
 }

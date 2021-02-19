@@ -47,20 +47,28 @@ namespace CoreJob.Server.Framework.Actions
                 });
             }
 
-            var jobExecuter = _dbContext.JobExecuter.FirstOrDefault(x => x.RegistryKey == request.Key && x.Auto);
+            var jobExecuter = _dbContext.JobExecuter.Include(x => x.RegistryHosts).FirstOrDefault(x => x.RegistryKey == request.Key && x.Auto);
             if (jobExecuter != null)
             {
-                if (string.IsNullOrEmpty(jobExecuter.RegistryHosts))
+                if (jobExecuter.RegistryHosts.IsNullOrEmptyList())
                 {
-                    jobExecuter.RegistryHosts = host;
+                    await _dbContext.RegistryHost.AddAsync(new RegistryHost()
+                    { 
+                        ExecuterId = jobExecuter.Id,
+                        Host = host,
+                        Order = 0
+                    });
                 }
                 else
                 {
-                    var temp = jobExecuter.RegistryHosts.Split(",").ToList();
-                    if (!temp.Contains(host))
+                    if (!jobExecuter.RegistryHosts.ToList().Exists(x => x.Host == host))
                     {
-                        temp.Add(host);
-                        jobExecuter.RegistryHosts = string.Join(",", temp);
+                        await _dbContext.RegistryHost.AddAsync(new RegistryHost()
+                        {
+                            ExecuterId = jobExecuter.Id,
+                            Host = host,
+                            Order = 0
+                        });
                     }
                 }
             }

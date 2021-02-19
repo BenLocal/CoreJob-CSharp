@@ -9,8 +9,8 @@ namespace CoreJob.Server.Framework.Models
         public List<Assembly> JobAssemblies { get; set; } = new List<Assembly>();
 
         /// <summary>
-        /// 默认清楚3月之前的log信息
+        /// 默认清除3月之前的log信息
         /// </summary>
-        public int ClearOldLogMonthTime = 3;
+        public int ClearOldLogMonthTime { get; set; } = 3;
     }
 }

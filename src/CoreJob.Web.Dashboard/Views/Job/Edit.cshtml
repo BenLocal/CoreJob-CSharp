@@ -1,5 +1,12 @@
 ﻿@model CoreJob.Web.Dashboard.Models.JobViewModel
 
+@{
+    ViewData["Title"] = "任务";
+}
+
+<link href="~/css/cronGen.css" rel="stylesheet">
+<link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
 <form class="ui form" id="form" enctype="multipart/form-data">
     <div class="ui clearing basic segment" style="padding: 0px" id="header">
         <div style="float: right">
@@ -31,7 +38,6 @@
             </h1>
         }
     </div>
-
     <div class="ui segment">
         <input type="hidden" name="@nameof(Model.IsNew)" value=@Model.IsNew.ToString().ToLower() />
         <input type="hidden" name="@nameof(Model.IsCopy)" value=@Model.IsCopy.ToString().ToLower() />
@@ -40,11 +46,18 @@
             <div class="two fields">
                 <div class="field accept-error">
                     <label>任务名</label>
-                    <input type="text" name="@nameof(Model.JobName)" placeholder="Name" value="@Model.JobName" id="jobName" />
+                    <input type="text" name="@nameof(Model.JobName)" placeholder="请输入任务名" value="@Model.JobName" id="jobName" />
                 </div>
                 <div class="field accept-error cron-field">
-                    <label>Cron <a href="http://cronmaker.com" target="_blank"><i class="external alternate icon"></i>http://cronmaker.com</a></label>
-                    <input type="text" name="@nameof(Model.Cron)" placeholder="Name" value="@Model.Cron" id="cron_expression" />
+                    <label>Cron <a href="@Url.Action("cron", "job")" target="_blank"><i class="external alternate icon"></i>生成Cron</a></label>
+                    <input type="text" name="@nameof(Model.Cron)" placeholder="请输入Cron表达式" value="@Model.Cron" id="cron_expression" />
+                    @*<div class="ui left action input">
+                            <button class="ui button" type="button" id="cron_expression_gen">
+                                <i class="cart icon"></i>
+                            </button>
+                            <input type="text" name="@nameof(Model.Cron)" placeholder="请输入Cron表达式" value="@Model.Cron" id="cron_expression" />
+                        </div>*@
+
                     <div style="float: right; cursor:pointer; display: none" id="next_cron_dates"><i class="eye icon"></i></div>
                     <p id="cron_desc"></p>
                 </div>
@@ -56,7 +69,7 @@
             </div>
             <div class="field accept-error">
                 <label>任务执行器</label>
-                <input type="text" name="@nameof(Model.ExecutorHandler)" placeholder="Name" value="@Model.ExecutorHandler" id="jobName" />
+                <input type="text" name="@nameof(Model.ExecutorHandler)" placeholder="请输入任务执行器名" value="@Model.ExecutorHandler" id="jobName" />
             </div>
 
             <div class="field accept-error">
@@ -66,6 +79,16 @@
         </div>
     </div>
 </form>
+<div class="ui mini modal" id="delete-dialog">
+    <div class="content">
+        <p>确定要删除这个任务?</p>
+        <p><b class="confirm-item"></b></p>
+    </div>
+    <div class="actions">
+        <div class="ui approve red button">删除</div>
+        <div class="ui cancel button">取消</div>
+    </div>
+</div>
 
 @section Scripts
 {
@@ -110,6 +133,11 @@
                 $(this).dropdown({
                     allowAdditions: $(this).hasClass('allow-additions')
                 });
+            });
+            $('#btn-delete').click(function () {
+                $('#delete-dialog .confirm-item').text(jobName);
+                deleteItem({}, $('#form'),
+                    '/job/delete/' + jobId, '/job/index');
             });
 
             initCronLiveDescription('@Url.Action("cron", "job")', $('#cron_expression'), $('#cron_desc'), $('#next_cron_dates'));

@@ -1,10 +1,24 @@
-﻿@{
-    ViewData["Title"] = "任务管理";
+﻿@model CoreJob.Web.Dashboard.Models.JobListViewModel
+@{
+    ViewData["Title"] = "任务";
 }
 
-<div class="ui small left icon input">
-    <input type="text" placeholder="Search Trigger..." id="search-trigger">
-    <i class="search icon"></i>
+<div class="ui action input">
+    <input type="text" placeholder="搜索任务名..." id="search_job_name">
+    <input type="text" style="border-radius: 0 !important;" placeholder="搜索创建者名..." id="search_create_user">
+    <select class="ui search selection dropdown allow-additions"
+            id="search_executor_id"
+            value="@Model.SearchExecutorId"
+            name="@nameof(Model.SearchExecutorId)"
+            asp-for="@Model.SearchExecutorId"
+            asp-items="@Model.ExecutorItems">
+    </select>
+    <select class="ui compact selection dropdown" id="search_status">
+        <option value="-1" selected>所有</option>
+        <option value="1">执行中</option>
+        <option value="0">停止</option>
+    </select>
+    <div class="ui button" id="search_btn"><i class="search icon"></i>搜索</div>
 </div>
 
 <a class="ui right floated primary button" href="@Url.Action("new", "job")">
@@ -18,6 +32,7 @@
         <tr>
             <th width="50">任务ID</th>
             <th>任务名</th>
+            <th>创建者</th>
             <th>Cron</th>
             <th>状态</th>
         </tr>
@@ -41,8 +56,12 @@
     <tr>
         <td class="job-id">{{item.id}}</td>
         <td class="job-name">
-            <a href="/log/index/{{item.id}}" title="{{item.name}}">{{item.name}}</a>
+            <a href="/logs/index/{{item.id}}" title="{{item.name}}">{{item.name}}</a>
             <button class="ui icon mini detail button"><i class="dots icon"></i></button>
+        </td>
+        <td class="job-user" data-content="{{item.create_user}}">
+            <i class="user icon"></i>
+            {{item.create_user}}
         </td>
         <td class="job-cron" data-content="{{item.cron_description}}">
             <i class="clock outline icon"></i>
@@ -70,7 +89,7 @@
     <div class="ui small vertical menu borderless" id="job-context-menu">
         <a class="item menu-edit"><i class="left large blue pencil alternate icon"></i>编辑</a>
         <a class="item menu-copy"><i class="left large clone outline icon"></i>复制</a>
-        <a class="item menu-trigger"><i class="left large green hourglass start icon"></i>执行一次</a>
+        <a class="item menu-trigger"><i class="left large orange hourglass start icon"></i>执行一次</a>
         <a class="item menu-start"><i class="left large green play icon"></i>开始</a>
         <a class="item menu-stop"><i class="left large red stop icon"></i>停止</a>
         <a class="item menu-delete"><i class="left large red trash alternate outline icon"></i>删除</a>
@@ -91,89 +110,101 @@
 @section Scripts
 {
     <script>
-        function bindContextMenu(menu, row, jobId, jobName) {
+    function bindContextMenu(menu, row, jobId, jobName) {
 
-            menu.find('>.menu-edit').attr('href', '@Url.Action("edit", "job")/' + jobId);
-            menu.find('>.menu-copy').attr('href', '@Url.Action("copy", "job")/' + jobId);
-            menu.find('>.menu-trigger').attr('href', '@Url.Action("trigger", "job")/' + jobId);
-            menu.find('>.menu-start').click(function () {
-                doGet({
-                    url: '@Url.Action("resume", "job")/' + jobId,
-                    success: function (data) {
-                        document.location = '@Url.Action("index", "job")';
-                    }
-                })
-            });
-            menu.find('>.menu-stop').click(function () {
-                doGet({
-                    url: '@Url.Action("pause", "job")/' + jobId,
-                    success: function (data) {
-                        document.location = '@Url.Action("index", "job")';
-                    }
-                })
-            });
-            menu.find('>.menu-delete').click(function () {
-                $('#delete-dialog .confirm-item').text(jobName);
-                deleteItem({}, $('#msg-panel'),
-                    '/job/delete/' + jobId, '/job/index');
-            });
-
-            var status = row.find('>.job-status').data("content");
-            if (status == "1") {
-                menu.find('>.menu-start').hide();
-                menu.find('>.menu-stop').show();
-            } else {
-                menu.find('>.menu-start').show();
-                menu.find('>.menu-stop').hide();
-            }
-
-            return menu;
-        }
-
-        function initPage() {
-            new Pagination({
-                id: "job_table_pagination",
-                url: '@Url.Action("joblist", "job")',
-                pageSize: 20,
-                barSize: 5,
-                success: function (rows) {
-                    if (!rows || rows.length == 0) {
-                        $("#job_table_empty").html(laytpl($("#job_empty_tmp").html()).render({}));
-                        $("#job_table_tfoot").hide();
-                    } else {
-                        $("#job_table_body").html(laytpl($("#job_table_body_tmp").html()).render(rows));
-                        $("#job_table_tfoot").show();
-                        $('#job_table_body').on('click', '> tr > td > .detail.button', function () {
-                            const $button = $(this),
-                                $_ = $(this).closest('tr'),
-                                jobId = $_.find('>.job-id').text(),
-                                jobName = $_.find('>.job-name a').text();
-                            $_.addClass('active-menu'); // to preserve highlighted row
-                            $button.popup({
-                                transition: 'slide',
-                                position: 'bottom left',
-                                variation: 'basic',
-                                on: 'click',
-                                arrowPixelsFromEdge: 0,
-                                onCreate: function () {
-                                    $(this).addClass('context-menu').click(function () { $button.popup('hide'); });
-                                },
-                                onHide: function () {
-                                    $_.removeClass('active-menu');
-                                },
-                                html: bindContextMenu($('#job-context-menu').clone(), $_, jobId, jobName)
-                            }).off('click').popup('show');
-                        });
-
-                        $('.job-cron').popup({ distanceAway: -12, variation: 'very wide' });
-                    }
+        menu.find('>.menu-edit').attr('href', '@Url.Action("edit", "job")/' + jobId);
+        menu.find('>.menu-copy').attr('href', '@Url.Action("copy", "job")/' + jobId);
+        menu.find('>.menu-trigger').attr('href', '@Url.Action("trigger", "job")/' + jobId);
+        menu.find('>.menu-start').click(function () {
+            doGet({
+                url: '@Url.Action("resume", "job")/' + jobId,
+                success: function (data) {
+                    document.location = '@Url.Action("index", "job")';
                 }
             })
+        });
+        menu.find('>.menu-stop').click(function () {
+            doGet({
+                url: '@Url.Action("pause", "job")/' + jobId,
+                success: function (data) {
+                    document.location = '@Url.Action("index", "job")';
+                }
+            })
+        });
+        menu.find('>.menu-delete').click(function () {
+            $('#delete-dialog .confirm-item').text(jobName);
+            deleteItem({}, $('#msg-panel'),
+                '/job/delete/' + jobId, '/job/index');
+        });
+
+        var status = row.find('>.job-status').data("content");
+        if (status == "1") {
+            menu.find('>.menu-start').hide();
+            menu.find('>.menu-stop').show();
+        } else {
+            menu.find('>.menu-start').show();
+            menu.find('>.menu-stop').hide();
         }
 
-        $(function () {
-            // load table data
+        return menu;
+    }
+
+    function initPage() {
+        new Pagination({
+            id: "job_table_pagination",
+            url: '@Url.Action("joblist", "job")',
+            data: {
+                searchJobName: $("#search_job_name").val(),
+                searchExecutorId: $("#search_executor_id").val(),
+                searchCreateUser: $("#search_create_user").val(),
+                searchStatus: $("#search_status").val()
+            },
+            pageSize: 20,
+            barSize: 5,
+            success: function (rows) {
+                $("#job_table_tfoot").hide();
+                $("#job_table_body").html("");
+                $("#job_table_empty").html("");
+                if (!rows || rows.length == 0) {
+                    $("#job_table_empty").html(laytpl($("#job_empty_tmp").html()).render({}));
+                } else {
+                    $("#job_table_body").html(laytpl($("#job_table_body_tmp").html()).render(rows));
+                    $("#job_table_tfoot").show();
+                    $('#job_table_body').on('click', '> tr > td > .detail.button', function () {
+                        const $button = $(this),
+                            $_ = $(this).closest('tr'),
+                            jobId = $_.find('>.job-id').text(),
+                            jobName = $_.find('>.job-name a').text();
+                        $_.addClass('active-menu'); // to preserve highlighted row
+                        $button.popup({
+                            transition: 'slide',
+                            position: 'bottom left',
+                            variation: 'basic',
+                            on: 'click',
+                            arrowPixelsFromEdge: 0,
+                            onCreate: function () {
+                                $(this).addClass('context-menu').click(function () { $button.popup('hide'); });
+                            },
+                            onHide: function () {
+                                $_.removeClass('active-menu');
+                            },
+                            html: bindContextMenu($('#job-context-menu').clone(), $_, jobId, jobName)
+                        }).off('click').popup('show');
+                    });
+
+                    $('.job-cron').popup({ distanceAway: -12, variation: 'very wide' });
+                }
+            }
+        })
+    }
+
+    $(function () {
+        // load table data
+        initPage();
+
+        $("#search_btn").on("click", function () {
             initPage();
         });
+    });
     </script>
 }

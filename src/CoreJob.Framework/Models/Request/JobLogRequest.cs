@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text.Json.Serialization;
 using MessagePack;
-using Newtonsoft.Json;
 
 namespace CoreJob.Framework.Models.Request
 {
@@ -12,21 +9,21 @@ namespace CoreJob.Framework.Models.Request
         /// <summary>
         /// 任务ID
         /// </summary>
-        [JsonProperty("logId")]
+        [JsonPropertyName("logId")]
         [Key(0)]
         public int JobLogId { get; set; }
 
         /// <summary>
         /// 日志开始行号，滚动加载日志   // 从1开始
         /// </summary>
-        [JsonProperty("fromLineNum")]
+        [JsonPropertyName("fromLineNum")]
         [Key(1)]
         public int FromLineNum { get; set; }
 
         /// <summary>
         /// 本次调度日志时间
         /// </summary>
-        [JsonProperty("logDateTim")]
+        [JsonPropertyName("logDateTim")]
         [Key(2)]
         public long LogDateTime { get; set; }
     }
