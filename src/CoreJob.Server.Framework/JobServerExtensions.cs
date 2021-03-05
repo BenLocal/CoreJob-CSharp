@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Quartz;
 using Quartz.Impl.Matchers;
 
@@ -31,15 +32,16 @@ namespace CoreJob.Server.Framework
             // ef core
             services.AddDbContext<JobDbContext>((provider, options) =>
             {
-                provider.GetRequiredService<IStoreProvider>()?.OptionsAction(options);
+                var storeOptions = provider.GetRequiredService<IOptions<StoreOptions>>().Value;
+                provider.GetRequiredService<IStoreProvider>()?.OptionsAction(options, storeOptions);
                 options.EnableSensitiveDataLogging().EnableDetailedErrors();
             });     
 
             // quartz
             services.AddQuartz(q =>
             {
-                q.AddJobListener<LogListener>(GroupMatcher<JobKey>.GroupEquals(JobConstant.Job_Default_Group));
-                q.AddTriggerListener<LogListener>(GroupMatcher<TriggerKey>.GroupEquals(JobConstant.Job_Default_Group));
+                q.AddJobListener<CoreJobListener>(GroupMatcher<JobKey>.GroupEquals(JobConstant.Job_Default_Group));
+                q.AddTriggerListener<CoreJobListener>(GroupMatcher<TriggerKey>.GroupEquals(JobConstant.Job_Default_Group));
                 q.UseMicrosoftDependencyInjectionScopedJobFactory();
             });
 
@@ -54,6 +56,7 @@ namespace CoreJob.Server.Framework
             {
                 options.JobAssemblies.Add(typeof(JobServerExtensions).Assembly);
             }
+
             JobUtilExtensions.CollectByInterface<IJob>(options.JobAssemblies).ForEach(t =>
             {
                 services.AddScoped(t);
@@ -67,6 +70,11 @@ namespace CoreJob.Server.Framework
             {
                 options.WaitForJobsToComplete = true;
             });
+
+            foreach (var item in options.Extensions)
+            {
+                item.AddServices(services);
+            }
 
             return services;
         }

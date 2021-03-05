@@ -1,4 +1,5 @@
 using System;
+using CoreJob.Framework;
 using CoreJob.Framework.Json.Extensions;
 using CoreJob.Framework.Models;
 using CoreJob.Server.Framework;
@@ -54,13 +55,16 @@ namespace CoreJob.Web.Dashboard
                 p.ReturnUrlParameter = "redirect";
             });
 
-            services.AddSingleton<IStoreProvider, MysqlServerStoreProvider>();
             services.AddCoreJobServer(_configuration, options => 
             {
                 options.InputMessageType = HttpMessageType.MSGPACK;
                 options.OutputMessageType = HttpMessageType.MSGPACK;
                 options.Token = "LDgVTSL2m3oEZMvgMAtJzEhhD8rT0bRpQXQ8583E";
                 options.JobAssemblies.Add(typeof(Startup).Assembly);
+                options.UseMysql(x =>
+                {
+                    x.StoreConnectionStr = _configuration.GetEnvironmentOrConfigStr("ConnectionStrings:CoreJobConnection");
+                });
             });
 
             services.AddSignalR();

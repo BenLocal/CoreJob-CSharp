@@ -58,15 +58,14 @@ namespace CoreJob.Client.Framework
             return services;
         }
 
-        public static IApplicationBuilder UseCoreJobClient(this IApplicationBuilder app)
+        public static IApplicationBuilder UseCoreJobClient(this IApplicationBuilder app, Action<JobLoggerConfiguration> logAction = null)
         {
             app.UseMiddleware<CoreJobClientMiddleware>();
 
+            var jobLoggerConfiguration = new JobLoggerConfiguration();
+            logAction?.Invoke(jobLoggerConfiguration);
             var loggerFactory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
-            loggerFactory.AddProvider(new CustomJobLoggerProvider(
-                          new JobLoggerConfiguration
-                          {
-                          }, app.ApplicationServices.GetRequiredService<IJobLoggerStore>()));
+            loggerFactory.AddProvider(new CustomJobLoggerProvider(jobLoggerConfiguration, app.ApplicationServices.GetRequiredService<IJobLoggerStore>()));
             return app;
         }
 

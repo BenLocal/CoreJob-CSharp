@@ -1,8 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using CoreJob.Framework;
+﻿using CoreJob.Framework;
 using CoreJob.Framework.Models;
 using CoreJob.Framework.Models.Response;
 using CoreJob.Server.Framework.Store;
@@ -10,7 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Quartz;
-using Z.EntityFramework.Plus;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CoreJob.Server.Framework.Listener
 {
@@ -18,16 +17,16 @@ namespace CoreJob.Server.Framework.Listener
     /// exception: TriggerFired => VetoJobExecution => JobToBeExecuted => JobWasExecuted => TriggerComplete
     /// success: TriggerFired => VetoJobExecution => JobToBeExecuted => JobWasExecuted => TriggerComplete
     /// </summary>
-    public class LogListener : IJobListener, ITriggerListener
+    public class CoreJobListener : IJobListener, ITriggerListener
     {
-        public string Name { get; set; } = "LogListener";
+        public string Name { get; set; } = "CoreJobListener";
 
-        private readonly ILogger<LogListener> _logger;
+        private readonly ILogger<CoreJobListener> _logger;
 
         private readonly IServiceProvider _provider;
 
-        public LogListener(IServiceProvider provider,
-            ILogger<LogListener> logger)
+        public CoreJobListener(IServiceProvider provider,
+            ILogger<CoreJobListener> logger)
         {
             _provider = provider;
             _logger = logger;
@@ -41,7 +40,6 @@ namespace CoreJob.Server.Framework.Listener
         /// <returns></returns>
         public Task JobExecutionVetoed(IJobExecutionContext context, CancellationToken cancellationToken = default)
         {
-            Console.WriteLine($"JobExecutionVetoed: {DateTime.Now}");
             return Task.CompletedTask;
         }
 
@@ -148,7 +146,6 @@ namespace CoreJob.Server.Framework.Listener
         /// <returns></returns>
         public Task TriggerComplete(ITrigger trigger, IJobExecutionContext context, SchedulerInstruction triggerInstructionCode, CancellationToken cancellationToken = default)
         {
-            Console.WriteLine($"TriggerComplete: {DateTime.Now}");
             return Task.CompletedTask;
         }
 
@@ -161,7 +158,6 @@ namespace CoreJob.Server.Framework.Listener
         /// <returns></returns>
         public Task TriggerFired(ITrigger trigger, IJobExecutionContext context, CancellationToken cancellationToken = default)
         {
-            Console.WriteLine($"TriggerFired: {DateTime.Now}");
             return Task.CompletedTask;
         }
 
@@ -173,7 +169,6 @@ namespace CoreJob.Server.Framework.Listener
         /// <returns></returns>
         public Task TriggerMisfired(ITrigger trigger, CancellationToken cancellationToken = default)
         {
-            Console.WriteLine($"TriggerMisfired: {DateTime.Now}");
             return Task.CompletedTask;
         }
 

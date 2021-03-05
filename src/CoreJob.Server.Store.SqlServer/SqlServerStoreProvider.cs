@@ -1,5 +1,6 @@
 ﻿using System;
 using CoreJob.Server.Framework.Abstractions;
+using CoreJob.Server.Framework.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -14,9 +15,9 @@ namespace CoreJob.Server.Store.SqlServer
             _configuration = configuration;
         }
 
-        public void OptionsAction(DbContextOptionsBuilder options)
+        public void OptionsAction(DbContextOptionsBuilder options, StoreOptions storeOptions)
         {
-            options.UseSqlServer(_configuration.GetConnectionString("CoreJobConnection"),
+            options.UseSqlServer(storeOptions.StoreConnectionStr,
                     b => b.MigrationsAssembly(typeof(SqlServerStoreProvider).Assembly.GetName().Name));
         }
     }
