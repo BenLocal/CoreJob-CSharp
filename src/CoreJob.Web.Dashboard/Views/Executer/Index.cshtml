@@ -2,10 +2,11 @@
     ViewData["Title"] = "执行器";
 }
 
-@*<div class="ui small left icon input">
-    <input type="text" placeholder="Search Trigger..." id="search-trigger">
-    <i class="search icon"></i>
-</div>*@
+<div class="ui action input">
+    <input type="text" placeholder="搜索执行器名..." id="search_executer_name">
+    <input type="text" style="border-radius: 0 !important;" placeholder="搜索注册名..." id="search_registry_name">
+    <div class="ui button" id="search_btn"><i class="search icon"></i>搜索</div>
+</div>
 <a class="ui right floated primary button" href="@Url.Action("new", "executer")">
     <i class="plus icon"></i>新增执行器
 </a>
@@ -53,7 +54,7 @@
         </td>
         <td class="executer-registry-hosts">
             {{# if(item.registry_hosts && item.registry_hosts.length > 0) { $.each(item.registry_hosts, function(index, host){}}
-            {{host}}
+            <a class="ui pink label">{{host}}</a>
             {{# }); } else {}}
             {{# } }}
         </td>
@@ -123,9 +124,16 @@
             new Pagination({
                 id: "executer_table_pagination",
                 url: '@Url.Action("executerlist", "executer")',
+                data: {
+                    searchExecutorName: $("#search_executer_name").val(),
+                    searchRegistryName: $("#search_registry_name").val(),
+                },
                 pageSize: 20,
                 barSize: 5,
                 success: function (rows) {
+                    $("#job_table_tfoot").hide();
+                    $("#executer_table_empty").html("");
+                    $("#executer_table_body").html("");
                     if (!rows || rows.length == 0) {
                         $("#executer_table_empty").html(laytpl($("#executer_empty_tmp").html()).render({}));
                         $("#executer_table_tfoot").hide();
@@ -142,6 +150,10 @@
 
         $(function () {
             initPage();
+
+            $("#search_btn").on("click", function () {
+                initPage();
+            });
         });
 
     </script>

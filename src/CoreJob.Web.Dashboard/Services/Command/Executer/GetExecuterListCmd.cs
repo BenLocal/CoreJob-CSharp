@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreJob.Framework;
 using CoreJob.Server.Framework.Store;
 using CoreJob.Web.Dashboard.Models;
 using MediatR;
@@ -16,6 +17,10 @@ namespace CoreJob.Web.Dashboard.Services.Command.Executer
 
         public int PageSize { get; set; }
 
+        public string SearchExecutorName { get; set; }
+
+        public string SearchRegistryName { get; set; }
+
         public class GetLogListCmdRequest : IRequestHandler<GetExecuterListCmd, JsonEntityBase>
         {
             private readonly JobDbContext _dbContext;
@@ -29,8 +34,19 @@ namespace CoreJob.Web.Dashboard.Services.Command.Executer
             {
                 var query = _dbContext.JobExecuter.AsQueryable();
 
-                var countFuture = query.DeferredCount().FutureValue();
-                var itemsFuture = query.Include(x => x.RegistryHosts).OrderBy(x => x.Id)
+                var predicate = PredicateBuilder.True<JobExecuter>();
+                if (request.SearchExecutorName.NotNullOrEmpty())
+                {
+                    predicate = predicate.And(x => x.Name.Contains(request.SearchExecutorName));
+                }
+
+                if (request.SearchRegistryName.NotNullOrEmpty())
+                {
+                    predicate = predicate.And(x => x.Name.Contains(request.SearchRegistryName));
+                }
+
+                var countFuture = query.Where(predicate).DeferredCount().FutureValue();
+                var itemsFuture = query.Where(predicate).Include(x => x.RegistryHosts).OrderBy(x => x.Id)
                                         .Skip((request.PageIndex - 1) * request.PageSize)
                                         .Take(request.PageSize).Future();
 

@@ -2,6 +2,11 @@
     <input type="text" placeholder="Search Trigger..." id="search-trigger">
     <i class="search icon"></i>
 </div>*@
+<div class="ui action input">
+    <input type="text" placeholder="搜索用户名..." id="search_user_name">
+    <div class="ui button" id="search_btn"><i class="search icon"></i>搜索</div>
+</div>
+
 <a class="ui right floated primary button" href="@Url.Action("new", "account")">
     <i class="plus icon"></i>新增用户
 </a>
@@ -108,9 +113,16 @@
             new Pagination({
                 id: "account_table_pagination",
                 url: '@Url.Action("accountlist", "account")',
+                data: {
+                    searchUserName: $("#search_user_name").val(),
+                },
                 pageSize: 20,
                 barSize: 5,
                 success: function (rows) {
+                    $("#account_table_tfoot").hide();
+                    $("#account_table_empty").html("");
+                    $("#account_table_body").html("");
+
                     if (!rows || rows.length == 0) {
                         $("#account_table_empty").html(laytpl($("#account_empty_tmp").html()).render({}));
                         $("#account_table_tfoot").hide();
@@ -127,6 +139,10 @@
 
         $(function () {
             initPage();
+
+            $("#search_btn").on("click", function () {
+                initPage();
+            });
         });
 
     </script>

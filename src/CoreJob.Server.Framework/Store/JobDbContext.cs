@@ -50,6 +50,7 @@ namespace CoreJob.Server.Framework.Store
                 entity.Property(x => x.ExecutorParam).HasColumnName("executor_param").HasMaxLength(1000);
                 entity.Property(x => x.Status).HasColumnName("status");
                 entity.Property(x => x.CreateUser).HasColumnName("create_user");
+                entity.Property(x => x.SelectorType).HasColumnName("selector_type");
 
                 entity.HasIndex(x => x.Name);
             });

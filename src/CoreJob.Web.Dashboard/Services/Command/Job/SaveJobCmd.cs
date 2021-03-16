@@ -54,7 +54,8 @@ namespace CoreJob.Web.Dashboard.Services.Command.Job
                         Name = model.JobName,
                         UpdateTime = DateTime.Now,
                         ExecutorId = model.ExecutorId,
-                        CreateUser = model.CreateUser
+                        CreateUser = model.CreateUser,
+                        SelectorType = model.SelectorType
                     };
 
                     await _dbContext.JobInfo.AddAsync(job);
@@ -71,6 +72,7 @@ namespace CoreJob.Web.Dashboard.Services.Command.Job
                     job.Name = model.JobName;
                     job.UpdateTime = DateTime.Now;
                     job.ExecutorId = model.ExecutorId;
+                    job.SelectorType = model.SelectorType;
 
                     if (request.Trigger)
                     {

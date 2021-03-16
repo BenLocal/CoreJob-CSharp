@@ -10,5 +10,7 @@ namespace CoreJob.Web.Dashboard.Models
         public int PageNum { get; set; }
 
         public int PageSize { get; set; }
+
+        public string SearchUserName { get; set; }
     }
 }

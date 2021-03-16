@@ -1,6 +1,8 @@
 ﻿using CoreJob.Framework;
+using CoreJob.Framework.Abstractions;
 using CoreJob.Framework.Models;
 using CoreJob.Framework.Models.Response;
+using CoreJob.Server.Framework.Models;
 using CoreJob.Server.Framework.Store;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,7 +57,8 @@ namespace CoreJob.Server.Framework.Listener
             using (var scope = _provider.CreateScope())
             using (var _dbContext = scope.ServiceProvider.GetRequiredService<JobDbContext>())
             {
-                var jobExecutor = await _dbContext.JobExecuter.Include(x => x.RegistryHosts).FirstOrDefaultAsync(x => x.Id == jobInfo.ExecutorId);
+                var jobExecutor = await _dbContext.JobExecuter.Include(x => x.RegistryHosts)
+                    .FirstOrDefaultAsync(x => x.Id == jobInfo.ExecutorId);
                 if (jobExecutor == null || jobExecutor.RegistryHosts.IsNullOrEmptyList())
                 {
                     _logger.LogError("没有找到执行器，任务中断");
@@ -63,10 +66,17 @@ namespace CoreJob.Server.Framework.Listener
                     return;
                 }
 
-                context.Trigger.JobDataMap.Put(JobConstant.MAP_DATA_HAS_ERROR, false);
-
                 // 找到合适的执行host
-                var registryHost = jobExecutor.RegistryHosts.FirstOrDefault();
+                var registryHost = Enumeration.FromValue<SelectorType>(jobInfo.SelectorType)
+                    .Selector?.SelectHost(jobExecutor.RegistryHosts, jobInfo);
+                if (registryHost == null)
+                {
+                    _logger.LogError("执行选择器没有设置，任务中断");
+                    context.Trigger.JobDataMap.Put(JobConstant.MAP_DATA_HAS_ERROR, true);
+                    return;
+                }
+
+                context.Trigger.JobDataMap.Put(JobConstant.MAP_DATA_HAS_ERROR, false);
                 context.Trigger.JobDataMap.SetMapData(registryHost);
 
                 var logInfo = new JobLog()

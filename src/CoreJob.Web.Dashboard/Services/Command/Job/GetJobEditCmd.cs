@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreJob.Framework.Abstractions;
+using CoreJob.Server.Framework.Models;
 using CoreJob.Server.Framework.Store;
 using CoreJob.Web.Dashboard.Models;
 using MediatR;
@@ -55,6 +57,11 @@ namespace CoreJob.Web.Dashboard.Services.Command.Job
 
                 vm.ExecutorItems = seelctItems;
 
+                // 获取所有节点选择器类型
+                var types = Enumeration.GetAll<SelectorType>();
+                vm.SelectorTypeItems = types.Select(x => new SelectListItem(x.Name, x.Id.ToString()));
+                
+
                 if (request.IsNew)
                 {
                     return vm;
@@ -63,6 +70,10 @@ namespace CoreJob.Web.Dashboard.Services.Command.Job
                 var jobInfo = await _dbContext.JobInfo.FindAsync(request.JobId);
 
                 vm.ExecutorId = jobInfo.ExecutorId;
+
+                // 当前节点选择器类型
+                vm.SelectorType = jobInfo.SelectorType;
+
                 vm.Cron = jobInfo.Cron;
                 vm.ExecutorHandler = jobInfo.ExecutorHandler;
                 vm.ExecutorParam = jobInfo.ExecutorParam;

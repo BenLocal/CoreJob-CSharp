@@ -3,8 +3,6 @@ using CoreJob.Server.Framework.Abstractions;
 using CoreJob.Server.Framework.Models;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CoreJob.Server.Store.Mysql
 {

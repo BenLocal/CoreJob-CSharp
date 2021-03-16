@@ -7,7 +7,7 @@ namespace CoreJob.Server.Framework.Models
 {
     public class CoreJobServerOptions : JobOptions
     {
-        private IList<IJobOptionsExtension> _extensions;
+        private readonly IList<IJobOptionsExtension> _extensions;
 
         internal IList<IJobOptionsExtension> Extensions => _extensions;
 

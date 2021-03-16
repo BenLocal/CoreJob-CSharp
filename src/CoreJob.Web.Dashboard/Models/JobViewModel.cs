@@ -44,5 +44,26 @@ namespace CoreJob.Web.Dashboard.Models
                 _executorItems = value;
             }
         }
+
+        public int SelectorType { get; set; }
+
+        private IEnumerable<SelectListItem> _selectorTypeItems;
+        public IEnumerable<SelectListItem> SelectorTypeItems
+        {
+            get
+            {
+                if (_selectorTypeItems == null)
+                {
+                    return null;
+                }
+
+                return _selectorTypeItems;
+            }
+
+            set
+            {
+                _selectorTypeItems = value;
+            }
+        }
     }
 }

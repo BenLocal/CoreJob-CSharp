@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Quartz;
 using Quartz.Impl.Matchers;
+using Z.EntityFramework.Extensions;
 
 namespace CoreJob.Server.Framework
 {
@@ -30,6 +31,7 @@ namespace CoreJob.Server.Framework
             services.AddSingleton(options);
 
             // ef core
+            EntityFrameworkManager.IsCommunity = true;
             services.AddDbContext<JobDbContext>((provider, options) =>
             {
                 var storeOptions = provider.GetRequiredService<IOptions<StoreOptions>>().Value;

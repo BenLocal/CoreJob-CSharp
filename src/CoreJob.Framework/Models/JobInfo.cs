@@ -38,5 +38,7 @@ namespace CoreJob.Framework.Models
         /// 
         /// </summary>
         public string CreateUser { get; set; }
+
+        public int SelectorType { get; set; }
     }
 }

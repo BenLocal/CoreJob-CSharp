@@ -1,4 +1,3 @@
-using System;
 using CoreJob.Framework;
 using CoreJob.Framework.Json.Extensions;
 using CoreJob.Framework.Models;
@@ -16,7 +15,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json.Serialization;
+using System;
 
 namespace CoreJob.Web.Dashboard
 {

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreJob.Framework.Abstractions;
+using CoreJob.Server.Framework.Models;
 using CoreJob.Server.Framework.Store;
 using CoreJob.Web.Dashboard.Models;
 using MediatR;
@@ -33,17 +35,17 @@ namespace CoreJob.Web.Dashboard.Services.Command.Job
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2)
                 });
-                var seelctItems = new List<SelectListItem>()
+                var selectItems = new List<SelectListItem>()
                 {
                     new SelectListItem("全部", "0")
                 };
 
                 if (executers != null)
                 {
-                    executers.ToList().ForEach(x => seelctItems.Add(new SelectListItem(x.text, x.value.ToString())));
+                    executers.ToList().ForEach(x => selectItems.Add(new SelectListItem(x.text, x.value.ToString())));
                 }
 
-                vm.ExecutorItems = seelctItems;
+                vm.ExecutorItems = selectItems;
 
                 return vm;
             }

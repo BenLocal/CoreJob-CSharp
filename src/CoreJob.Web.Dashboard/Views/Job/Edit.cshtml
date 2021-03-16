@@ -4,9 +4,6 @@
     ViewData["Title"] = "任务";
 }
 
-<link href="~/css/cronGen.css" rel="stylesheet">
-<link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-
 <form class="ui form" id="form" enctype="multipart/form-data">
     <div class="ui clearing basic segment" style="padding: 0px" id="header">
         <div style="float: right">
@@ -52,11 +49,11 @@
                     <label>Cron <a href="@Url.Action("cron", "job")" target="_blank"><i class="external alternate icon"></i>生成Cron</a></label>
                     <input type="text" name="@nameof(Model.Cron)" placeholder="请输入Cron表达式" value="@Model.Cron" id="cron_expression" />
                     @*<div class="ui left action input">
-                            <button class="ui button" type="button" id="cron_expression_gen">
-                                <i class="cart icon"></i>
-                            </button>
-                            <input type="text" name="@nameof(Model.Cron)" placeholder="请输入Cron表达式" value="@Model.Cron" id="cron_expression" />
-                        </div>*@
+                    <button class="ui button" type="button" id="cron_expression_gen">
+                        <i class="cart icon"></i>
+                    </button>
+                    <input type="text" name="@nameof(Model.Cron)" placeholder="请输入Cron表达式" value="@Model.Cron" id="cron_expression" />
+                </div>*@
 
                     <div style="float: right; cursor:pointer; display: none" id="next_cron_dates"><i class="eye icon"></i></div>
                     <p id="cron_desc"></p>
@@ -65,6 +62,11 @@
             <div class="field accept-error">
                 <label>执行器</label>
                 <select class="ui search selection dropdown allow-additions" value="@Model.ExecutorId" name="@nameof(Model.ExecutorId)" asp-for="@Model.ExecutorId" asp-items="@Model.ExecutorItems">
+                </select>
+            </div>
+            <div class="field accept-error">
+                <label>执行类型</label>
+                <select class="ui search selection dropdown allow-additions" value="@Model.SelectorType" name="@nameof(Model.SelectorType)" asp-for="@Model.SelectorType" asp-items="@Model.SelectorTypeItems">
                 </select>
             </div>
             <div class="field accept-error">

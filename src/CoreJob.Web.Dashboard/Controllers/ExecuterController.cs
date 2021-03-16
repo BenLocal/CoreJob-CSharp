@@ -42,7 +42,9 @@ namespace CoreJob.Web.Dashboard.Controllers
             var list = await _mediator.Send(new GetExecuterListCmd()
             {
                 PageIndex = model.PageNum,
-                PageSize = model.PageSize
+                PageSize = model.PageSize,
+                SearchExecutorName = model.SearchExecutorName,
+                SearchRegistryName = model.SearchRegistryName
             });
             return Ok(list);
         }

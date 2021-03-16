@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Z.EntityFramework.Plus;
 
 namespace CoreJob.Web.Dashboard.Controllers
 {
@@ -153,15 +154,21 @@ namespace CoreJob.Web.Dashboard.Controllers
         {
             var query = _dbContext.User.AsQueryable();
 
-            var count = await query.CountAsync().ConfigureAwait(false);
-            var items = await query.Skip((model.PageNum - 1) * model.PageSize)
-                                    .Take(model.PageSize)
-                                    .ToListAsync()
-                                    .ConfigureAwait(false);
+            var predicate = PredicateBuilder.True<DashboardUser>();
+            if (model.SearchUserName.NotNullOrEmpty())
+            {
+                predicate = predicate.And(x => x.Name.Contains(model.SearchUserName));
+            }
 
+            var countFuture = query.Where(predicate).DeferredCount().FutureValue();
+            var itemsFuture = query.Where(predicate).Skip((model.PageNum - 1) * model.PageSize)
+                                    .Take(model.PageSize).Future();
+
+            var total = await countFuture.ValueAsync();
+            var items = await itemsFuture.ToListAsync();
             return Ok(new
             {
-                total = count,
+                total = total,
                 rows = items.Select(x => new
                 {
                     Id = x.Id,

@@ -75,7 +75,6 @@ namespace CoreJob.Client.Framework
 
             if (result?.Code == JobConstant.HTTP_SUCCESS_CODE)
             {
-                _logger.LogInformation($"corejob {logActionName} 成功");
                 return true;
             }
 

@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using CoreJob.Framework;
 using CoreJob.Server.Framework.Store;
 using CoreJob.Web.Dashboard.Helpers.Common;
 using CoreJob.Web.Dashboard.Models;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using CoreJob.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CoreJob.Web.Dashboard.Services.Command.Executer
 {
@@ -64,10 +64,15 @@ namespace CoreJob.Web.Dashboard.Services.Command.Executer
 
                         if (registryHosts != null && registryHosts.Any())
                         {
-                            await _dbContext.RegistryHost.BulkInsertAsync(registryHosts, options => {
-                                options.InsertIfNotExists = true;
-                                options.ColumnPrimaryKeyExpression = x => x.Host;
-                            });
+                            // Z.EntityFramework.Extensions.EFCore.dll is commercial and required payment
+                            //await _dbContext.RegistryHost.BulkInsertAsync(registryHosts, options =>
+                            //{
+                            //    options.InsertIfNotExists = true;
+                            //    options.ColumnPrimaryKeyExpression = x => x.Host;
+                            //});
+
+                            _dbContext.ChangeTracker.AutoDetectChangesEnabled = false;
+                            _dbContext.AddRange(registryHosts);
                         }
                     }
                     else
@@ -83,13 +88,18 @@ namespace CoreJob.Web.Dashboard.Services.Command.Executer
                                 Host = x.Host,
                                 Order = 0
                             });
-                            await _dbContext.RegistryHost.BulkInsertAsync(registryHosts, options => {
-                                options.InsertIfNotExists = true;
-                                options.ColumnPrimaryKeyExpression = x => x.Host;
-                            });
+
+                            // Z.EntityFramework.Extensions.EFCore.dll is commercial and required payment
+                            //await _dbContext.RegistryHost.BulkInsertAsync(registryHosts, options =>
+                            //{
+                            //    options.InsertIfNotExists = true;
+                            //    options.ColumnPrimaryKeyExpression = x => x.Host;
+                            //});
+
+                            _dbContext.ChangeTracker.AutoDetectChangesEnabled = false;
+                            _dbContext.AddRange(registryHosts);
                         }
                     }
-
                 }
                 else
                 {
@@ -112,10 +122,29 @@ namespace CoreJob.Web.Dashboard.Services.Command.Executer
 
                         if (registryHosts != null && registryHosts.Any())
                         {
-                            await _dbContext.RegistryHost.BulkMergeAsync(registryHosts, options => {
-                                options.InsertIfNotExists = true;
-                                options.ColumnPrimaryKeyExpression = x => x.Host;
-                            });
+                            // Z.EntityFramework.Extensions.EFCore.dll is commercial and required payment
+                            // BLT.EntityFramework.Extensions.EFCore.dll was hack this code:
+                            // if (LicenseManager.\uE000.Count == 0)
+                            // {
+                            //   if (DateTime.Now < new DateTime(2199, 2, 1))
+
+                            //await _dbContext.RegistryHost.BulkMergeAsync(registryHosts, options =>
+                            //{
+                            //    options.InsertIfNotExists = true;
+                            //    options.ColumnPrimaryKeyExpression = x => x.Host;
+                            //});
+
+                            _dbContext.ChangeTracker.AutoDetectChangesEnabled = false;
+                            var groups = registryHosts.GroupBy(x => x.Id == 0).ToDictionary(x => x.Key, y => y.ToList());
+
+                            if (groups.ContainsKey(true) && groups[true].Any())
+                            {
+                                _dbContext.AddRange(groups[true]);
+                            }
+                            if (groups.ContainsKey(false) && groups[false].Any())
+                            {
+                                _dbContext.UpdateRange(groups[false]);
+                            }
                         }
                     }
                 }
