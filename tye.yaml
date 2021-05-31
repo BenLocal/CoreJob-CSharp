@@ -1,0 +1,15 @@
+# tye application configuration file
+# read all about it at https://github.com/dotnet/tye
+name: service
+
+services:
+- name: Dashboard
+  project: src/CoreJob.Web.Dashboard/CoreJob.Web.Dashboard.csproj
+  bindings:
+  - protocol: http
+    port: 7800
+- name: OpenApiMockServer
+  project: samples/Core.Client.AspnetWeb/Core.Client.AspnetWeb.csproj
+  bindings:
+  - protocol: http
+    port: 7801

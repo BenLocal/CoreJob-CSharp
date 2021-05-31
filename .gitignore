@@ -2,3 +2,4 @@
 *obj
 *.vs
 *csproj.user
+.tye/process_store

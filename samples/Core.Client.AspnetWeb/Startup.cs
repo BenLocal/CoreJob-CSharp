@@ -27,12 +27,12 @@ namespace Core.Client.AspnetWeb
         {
             services.AddCoreJobClient(_configuration, options =>
             {
-                options.AdminUrl = "https://localhost:44318";
+                options.AdminUrl = "http://localhost:7800";
                 options.HeartbeatIntervalSecond = 30;
-                options.ExecutorUrl = "http://localhost:5000";
-                options.ExecutorAppName = "TestDemo";
+                options.ExecutorUrl = "http://localhost:7801";
                 options.InputMessageType = CoreJob.Framework.Models.HttpMessageType.MSGPACK;
                 options.OutputMessageType = CoreJob.Framework.Models.HttpMessageType.MSGPACK;
+                options.Token = "LDgVTSL2m3oEZMvgMAtJzEhhD8rT0bRpQXQ8583E";
             });
         }
 
