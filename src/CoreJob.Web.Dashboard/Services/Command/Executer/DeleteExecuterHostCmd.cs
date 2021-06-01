@@ -25,8 +25,12 @@ namespace CoreJob.Web.Dashboard.Services.Command.Executer
 
             public async Task<JsonEntityBase> Handle(DeleteExecuterHostCmd request, CancellationToken cancellationToken)
             {
-                _dbContext.RegistryHost.Remove(new RegistryHost() { Id = request.Id });
-                await _dbContext.SaveChangesAsync();
+                var dbValue = await _dbContext.RegistryHost.FindAsync(new RegistryHost() { Id = request.Id });
+                if (dbValue != null)
+                {
+                    _dbContext.RegistryHost.Remove(dbValue);
+                    await _dbContext.SaveChangesAsync();
+                }
 
                 return new
                 {
