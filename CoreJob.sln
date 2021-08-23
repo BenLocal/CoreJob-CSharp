@@ -21,9 +21,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreJob.Client.Framework", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Client.AspnetWeb", "samples\Core.Client.AspnetWeb\Core.Client.AspnetWeb.csproj", "{5B275BC3-C026-489A-B95E-58EC8B56BAD2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreJob.Server.Store.SqlServer", "src\CoreJob.Server.Store.SqlServer\CoreJob.Server.Store.SqlServer.csproj", "{4F22A644-0BAA-4C14-97B3-677C9B371844}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreJob.Server.Store.SqlServer", "src\CoreJob.Server.Store.SqlServer\CoreJob.Server.Store.SqlServer.csproj", "{4F22A644-0BAA-4C14-97B3-677C9B371844}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreJob.Server.Store.Mysql", "src\CoreJob.Server.Store.Mysql\CoreJob.Server.Store.Mysql.csproj", "{AFBB68DF-9939-4801-A489-98DB2AD721F6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreJob.Server.Store.Mysql", "src\CoreJob.Server.Store.Mysql\CoreJob.Server.Store.Mysql.csproj", "{AFBB68DF-9939-4801-A489-98DB2AD721F6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreJob.MailSender", "src\CoreJob.MailSender\CoreJob.MailSender.csproj", "{B7B76DBB-AF7D-4082-B96F-F84029C1B7AF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +65,10 @@ Global
 		{AFBB68DF-9939-4801-A489-98DB2AD721F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AFBB68DF-9939-4801-A489-98DB2AD721F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AFBB68DF-9939-4801-A489-98DB2AD721F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7B76DBB-AF7D-4082-B96F-F84029C1B7AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7B76DBB-AF7D-4082-B96F-F84029C1B7AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7B76DBB-AF7D-4082-B96F-F84029C1B7AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7B76DBB-AF7D-4082-B96F-F84029C1B7AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -76,6 +82,7 @@ Global
 		{5B275BC3-C026-489A-B95E-58EC8B56BAD2} = {D7C39D4B-A503-43F6-891C-8F7CF2DC697E}
 		{4F22A644-0BAA-4C14-97B3-677C9B371844} = {2C5BD011-A4B8-481B-B189-B3FA4085CDEE}
 		{AFBB68DF-9939-4801-A489-98DB2AD721F6} = {2C5BD011-A4B8-481B-B189-B3FA4085CDEE}
+		{B7B76DBB-AF7D-4082-B96F-F84029C1B7AF} = {2C5BD011-A4B8-481B-B189-B3FA4085CDEE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BD8A0F45-0750-40E3-896E-DDC39FFF6C6D}

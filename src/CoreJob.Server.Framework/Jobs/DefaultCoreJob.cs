@@ -40,6 +40,17 @@ namespace CoreJob.Server.Framework.Jobs
                 LogDateTime = logInfo.StartTime.GetTimeStamp()
             });
 
+            if (result.Success())
+            {
+                context.Trigger.JobDataMap.SetMapData(result);
+                return;
+            }
+
+            if (!result.Health())
+            { 
+                // 网络异常重试
+            }
+
             context.Trigger.JobDataMap.SetMapData(result);
         }
     }

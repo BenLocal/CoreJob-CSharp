@@ -40,5 +40,10 @@ namespace CoreJob.Framework.Models
         public string CreateUser { get; set; }
 
         public int SelectorType { get; set; }
+
+        /// <summary>
+        /// 错误时发送邮件
+        /// </summary>
+        public string ErrorMailUser { get; set; }
     }
 }

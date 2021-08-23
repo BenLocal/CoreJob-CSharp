@@ -8,8 +8,10 @@ services:
   bindings:
   - protocol: http
     port: 7800
+  args: --urls http://*:7800
 - name: OpenApiMockServer
   project: samples/Core.Client.AspnetWeb/Core.Client.AspnetWeb.csproj
   bindings:
   - protocol: http
     port: 7801
+  args: --urls http://*:7801

@@ -7,9 +7,9 @@ using CoreJob.Server.Framework.Store;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NETCore.MailKit.Core;
 using Quartz;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -107,6 +107,7 @@ namespace CoreJob.Server.Framework.Listener
         /// <returns></returns>
         public async Task JobWasExecuted(IJobExecutionContext context, JobExecutionException jobException, CancellationToken cancellationToken = default)
         {
+            using var scope = _provider.CreateScope();
             var hasError = context.Trigger.JobDataMap.GetBoolean(JobConstant.MAP_DATA_HAS_ERROR);
             if (hasError)
             {
@@ -119,7 +120,11 @@ namespace CoreJob.Server.Framework.Listener
             {
                 logInfo.Status = JobLogStatus.Fail;
                 logInfo.HandlerCode = JobConstant.HTTP_FAIL_CODE;
-                logInfo.HandlerMsg = $@"执行出现异常：{jobException.Message}<br>异常堆栈: {jobException.StackTrace}";
+                logInfo.HandlerMsg = $@"执行出现异常：{jobException.Message} -- 执行时间：{ExecTimeStr()}ms
+<br>异常堆栈: {jobException.StackTrace}";
+
+                // 发送邮件
+                SendEmail(logInfo);
                 return;
             }
             else
@@ -131,14 +136,45 @@ namespace CoreJob.Server.Framework.Listener
                 {
                     logInfo.Status = JobLogStatus.Fail;
                     logInfo.HandlerMsg = $@"执行失败<br>StatusCode: {response.StatusCode}<br>错误信息: {response.Msg}";
+
+                    // 发送邮件
+                    SendEmail(logInfo);
                 }
                 else 
                 {
-                    logInfo.HandlerMsg = $@"执行成功";
+                    logInfo.HandlerMsg = $@"执行成功<br>执行时间： {ExecTimeStr()}ms";
                 }
                 
             }
-            using (var scope = _provider.CreateScope())
+
+            string ExecTimeStr()
+            {
+                if (logInfo.HandlerTime.HasValue)
+                {
+                    return (logInfo.HandlerTime.Value.Millisecond - logInfo.StartTime.Millisecond).ToString();
+                }
+
+                return "N/A";
+            }
+
+            void SendEmail(JobLog jobLog)
+            {
+                var jobInfo = context.Trigger.JobDataMap.GetMapData<JobInfo>();
+                if (jobInfo == null || jobInfo.ErrorMailUser.NullOrEmpty())
+                {
+                    return;
+                }
+
+                var sender = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                if (sender == null)
+                {
+                    return;
+                }
+                sender.Send(jobInfo.ErrorMailUser,
+                    $"Job-<({jobInfo.Id}){jobInfo?.Name}>执行异常！- logId={jobLog.Id}",
+                    logInfo.HandlerMsg);
+            }
+
             using (var _dbContext = scope.ServiceProvider.GetRequiredService<JobDbContext>())
             {
                 _dbContext.Update(logInfo);

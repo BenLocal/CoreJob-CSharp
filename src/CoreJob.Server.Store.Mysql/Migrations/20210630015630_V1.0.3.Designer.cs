@@ -3,14 +3,16 @@ using System;
 using CoreJob.Server.Framework.Store;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CoreJob.Server.Store.Mysql.Migrations
 {
     [DbContext(typeof(JobDbContext))]
-    partial class JobDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210630015630_V1.0.3")]
+    partial class V103
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

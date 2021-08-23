@@ -51,6 +51,7 @@ namespace CoreJob.Server.Framework.Store
                 entity.Property(x => x.Status).HasColumnName("status");
                 entity.Property(x => x.CreateUser).HasColumnName("create_user");
                 entity.Property(x => x.SelectorType).HasColumnName("selector_type");
+                entity.Property(x => x.ErrorMailUser).HasColumnName("error_mail_user").HasMaxLength(1000);
 
                 entity.HasIndex(x => x.Name);
             });

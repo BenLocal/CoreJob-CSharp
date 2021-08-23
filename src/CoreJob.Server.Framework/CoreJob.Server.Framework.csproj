@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CoreJob.Framework\CoreJob.Framework.csproj" />
+    <ProjectReference Include="..\CoreJob.MailSender\CoreJob.MailSender.csproj" />
   </ItemGroup>
 
 </Project>
